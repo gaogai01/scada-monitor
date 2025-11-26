@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尖山發電廠 - 廢油水雲端監控</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        
+        header { text-align: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; margin: 0; font-size: 1.5rem; }
+        .time-box { color: #7f8c8d; font-size: 0.9rem; margin-top: 5px; }
+        
+        .section-title { color: #2c3e50; font-size: 1.1rem; margin: 20px 0 10px 5px; border-left: 4px solid #2ecc71; padding-left: 8px; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        
+        .card { background: white; border-radius: 6px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 3px solid #3498db; }
+        .card h3 { margin: 0 0 5px 0; color: #666; font-size: 0.9rem; min-height: 2.2em; display: flex; align-items: center; }
+        
+        .value-area { display: flex; align-items: baseline; }
+        .value { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
+        .unit { font-size: 0.8rem; color: #999; margin-left: 4px; }
+        
+        #loading { text-align: center; color: #666; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>尖山發電廠 - 廢油水雲端監控</h1>
+            <div class="time-box">最後更新: <span id="time">--:--:--</span></div>
+        </header>
+
+        <div id="app">
+            <div id="loading">資料讀取中...</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 請將你的 Google Apps Script 網址貼在這裡
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzIT_QBzLE7KKkYPO52kel1ZP5lCjdDx-5VXdyc6Rw/dev";
+        // ==========================================
+
+        function fetchData() {
+            // 在網址後面加上 ?mode=read 告訴 Google 我們要讀資料
+            fetch(GOOGLE_SCRIPT_URL + "?mode=read")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('time').innerText = data.timestamp;
+                    
+                    let html = '';
+                    data.systems.forEach(sys => {
+                        html += `<div class="section-title">${sys.title}</div>`;
+                        html += `<div class="grid">`;
+                        sys.items.forEach(item => {
+                            html += `
+                                <div class="card">
+                                    <h3>${item.name}</h3>
+                                    <div class="value-area">
+                                        <span class="value">${item.val}</span>
+                                        <span class="unit">${item.unit}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                    });
+                    document.getElementById('app').innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('loading').innerText = "連線錯誤，請稍後再試";
+                });
+        }
+
+        // 每 5 秒更新一次
+        setInterval(fetchData, 5000);
+        fetchData();
+    </script>
+</body>
+</html>
