@@ -29,11 +29,12 @@
         .card { background: white; border-radius: 6px; padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s ease; border-top: 3px solid #ccc; position: relative; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
         
-        /* --- 系統顏色 (更新) --- */
-        .group-d01 .card  { border-top-color: #007bff; } /* D01: 藍色 */
-        .group-wm01 .card { border-top-color: #17a2b8; } /* WM01: 青色 (新) */
-        .group-wm02 .card { border-top-color: #6f42c1; } /* WM02: 紫色 */
-        .group-wm05 .card { border-top-color: #fd7e14; } /* WM05: 橘色 */
+        /* --- 系統顏色設定 --- */
+        .group-d01 .card  { border-top-color: #007bff; } /* 藍 */
+        .group-wm01 .card { border-top-color: #17a2b8; } /* 青 */
+        .group-wm02 .card { border-top-color: #6f42c1; } /* 紫 */
+        .group-wm05 .card { border-top-color: #fd7e14; } /* 橘 */
+        .group-d02 .card  { border-top-color: #20c997; } /* 綠 (新增 D02 顏色) */
 
         /* 警報顏色 */
         .card.status-warning { background-color: #fff3cd; border-top-color: #ffc107 !important; animation: pulse-orange 2s infinite; }
@@ -52,7 +53,7 @@
         
         .loading { text-align: center; padding: 20px; color: #aaa; font-size: 1rem; }
 
-        /* 手機版雙欄 */
+        /* 手機版 */
         @media (max-width: 600px) {
             .grid { grid-template-columns: 1fr 1fr; gap: 8px; }
             h1 { font-size: 1.1rem; }
@@ -62,7 +63,7 @@
             .chart-controls { flex-direction: column; }
         }
 
-        /* Modal 樣式 */
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -113,6 +114,7 @@
                     <option value="level">液位 (cm)</option>
                     <option value="flow">流量 (M3/Hr)</option>
                     <option value="quality">水質監測 (PH, COD...)</option>
+                    <option value="temp">溫度 (°C)</option>
                 </select>
             </div>
             <div class="control-group" style="flex: 2;">
@@ -131,24 +133,26 @@
     // 1. Google Apps Script 網址
     // ============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec"; 
-    // ↑↑↑ 請確認這是您最新的網址 ↑↑↑
+    // ↑↑↑ 請確認這是您的網址 ↑↑↑
 
     // ============================================================
     // 2. 警報規則
     // ============================================================
     const ALARMS = {
-        "LI018_VAL0":   { warn: 90,  crit: 100 }, // LI01-07 放流水液位
-        "SS018_VAL0":   { warn: 20,  crit: 30  }, // SS01-07 懸浮固體
-        "COD018_VAL0":  { warn: 80,  crit: 100 }, // COD01-07 化學需氧量
-        "OFD018_VAL0":  { warn: 6,   crit: 10  }, // OFD01-07 油份濃度
-        "NH3N018_VAL0": { warn: 30,  crit: 60  }, // NH3N01-07 氨氮濃度
-        "LI021_VAL0":   { warn: 410, crit: 430 }, // LI02-01 污水收集槽液位
-        "LI012_VAL0":   { warn: 210, crit: 230 }, // LI01-01 廢水儲槽液位
-        "LIT000_VAL0":  { warn: 90,  crit: 120 }, // LI05-01 廢油水緩衝液位
+        "LI018_VAL0":   { warn: 90,  crit: 100 }, // LI01-07
+        "SS018_VAL0":   { warn: 20,  crit: 30  }, // SS01-07
+        "COD018_VAL0":  { warn: 80,  crit: 100 }, // COD01-07
+        "OFD018_VAL0":  { warn: 6,   crit: 10  }, // OFD01-07
+        "NH3N018_VAL0": { warn: 30,  crit: 60  }, // NH3N01-07
+        "LI021_VAL0":   { warn: 410, crit: 430 }, // LI02-01
+        "LI012_VAL0":   { warn: 210, crit: 230 }, // LI01-01
+        "LIT000_VAL0":  { warn: 90,  crit: 120 }, // LI05-01
+        // D02 的警報規則 (標準: 水溫35/38)
+        "D02_TEMP":     { warn: 35,  crit: 38  }, 
     };
 
     // ============================================================
-    // 3. 儀表板內容 (依照新需求調整)
+    // 3. 儀表板內容 (新增 D02)
     // ============================================================
     const DASHBOARD_CONFIG = [
         {
@@ -156,7 +160,6 @@
             title: "D01 放流水水質",
             className: "group-d01",
             items: [
-                // 原過濾系統移除了液位和流量，剩下水質
                 { col: "SS018_VAL0",   tag: "SS01-07",   name: "懸浮固體",       unit: "mg/L", cat: "quality" },
                 { col: "COD018_VAL0",  tag: "COD01-07",  name: "化學需氧量",     unit: "mg/L", cat: "quality" },
                 { col: "OFD018_VAL0",  tag: "OFD01-07",  name: "油份濃度",       unit: "mg/L", cat: "quality" },
@@ -165,13 +168,20 @@
             ]
         },
         {
+            id: "d02",
+            title: "D02 未接觸冷卻水 (CWMS)",
+            className: "group-d02",
+            items: [
+                { col: "D02_TEMP",     tag: "D02-Temp",  name: "放流水溫",       unit: "°C",   cat: "temp" },
+                { col: "D02_FLOW",     tag: "D02-Flow",  name: "放流水量",       unit: "M3",   cat: "flow" }
+            ]
+        },
+        {
             id: "wm01",
             title: "WM01 事業廢水處理",
             className: "group-wm01",
             items: [
-                // 廢水儲槽移來第一個
                 { col: "LI012_VAL0",   tag: "LI01-01",   name: "廢水儲槽液位",   unit: "cm",   cat: "level" },
-                // 放流水液位和流量移來這裡
                 { col: "LI018_VAL0",   tag: "LI01-07",   name: "放流水液位",     unit: "cm",   cat: "level" },
                 { col: "FI018_VAL0",   tag: "FIT01-07",  name: "放流流量",       unit: "M3/Hr",cat: "flow" }
             ]
@@ -181,7 +191,6 @@
             title: "WM02 生活污水處理",
             className: "group-wm02",
             items: [
-                // 原 SBR 系統
                 { col: "LI021_VAL0",   tag: "LI02-01",   name: "污水收集槽",     unit: "cm",   cat: "level" },
                 { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "進流流量",       unit: "M3/Hr",cat: "flow" },
                 { col: "LI022_VAL0",   tag: "LI02-02",   name: "處理設備液位",   unit: "cm",   cat: "level" },
@@ -193,7 +202,6 @@
             title: "WM05 含油事業廢水處理",
             className: "group-wm05",
             items: [
-                // 原 廢油水 & DAF 系統 (移除油膜檢知)
                 { col: "LIT000_VAL0",  tag: "LI05-01",   name: "廢油水緩衝",     unit: "cm",   cat: "level" },
                 { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "進流 A",         unit: "M3/Hr",cat: "flow" },
                 { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "進流 B",         unit: "M3/Hr",cat: "flow" },
@@ -239,6 +247,7 @@
 
                     group.items.forEach(item => {
                         let val = data[item.col] !== undefined ? data[item.col] : '--';
+                        
                         if (!isNaN(val) && val.toString().indexOf('.') !== -1) {
                              val = parseFloat(val).toFixed(1);
                              if(val.endsWith('.0')) val = val.replace('.0', '');
