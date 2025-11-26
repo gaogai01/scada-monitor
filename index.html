@@ -5,61 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>尖山發電廠 - 廢油水雲端監控</title>
     <style>
-        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; }
+        .container { max-width: 1400px; margin: 0 auto; }
         
         /* 標題區 */
-        header { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-        h1 { color: #2c3e50; margin: 0; font-size: 1.5rem; border-left: 5px solid #3498db; padding-left: 15px; }
-        .status-box { font-size: 0.9rem; color: #666; background: #f8f9fa; padding: 5px 10px; border-radius: 5px; }
+        header { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-left: 6px solid #007bff; }
+        h1 { color: #2c3e50; margin: 0; font-size: 1.6rem; letter-spacing: 1px; }
+        .status-box { font-size: 0.9rem; color: #555; background: #e9ecef; padding: 6px 12px; border-radius: 20px; font-weight: bold; }
         
         /* 分區標題 */
-        .system-group { margin-bottom: 30px; }
-        .system-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 10px; padding-left: 10px; border-left: 4px solid #2ecc71; font-weight: bold; display: flex; align-items: center; }
-        .system-title span { background: #e8f5e9; color: #2e7d32; font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; margin-left: 10px; font-weight: normal; }
+        .system-group { margin-bottom: 35px; }
+        .system-title { font-size: 1.3rem; color: #343a40; margin-bottom: 15px; padding-left: 12px; border-left: 5px solid #28a745; font-weight: bold; display: flex; align-items: center; }
+        .system-title span { background: #d4edda; color: #155724; font-size: 0.8rem; padding: 3px 10px; border-radius: 15px; margin-left: 12px; font-weight: normal; }
 
         /* 卡片網格 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         
         /* 數據卡片 */
-        .card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 3px 6px rgba(0,0,0,0.05); transition: transform 0.2s; border-top: 3px solid #ddd; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; border-top: 4px solid #ccc; position: relative; overflow: hidden; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         
         /* 依據系統換顏色 */
-        .group-filter .card { border-top-color: #3498db; } /* 藍 */
-        .group-sbr .card { border-top-color: #9b59b6; }    /* 紫 */
-        .group-daf .card { border-top-color: #e67e22; }    /* 橘 */
+        .group-filter .card { border-top-color: #007bff; } /* 藍 */
+        .group-sbr .card { border-top-color: #6f42c1; }    /* 紫 */
+        .group-daf .card { border-top-color: #fd7e14; }    /* 橘 */
 
-        .card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9rem; font-weight: normal; }
-        .data-row { display: flex; align-items: baseline; }
-        .value { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
-        .unit { font-size: 0.9rem; color: #95a5a6; margin-left: 5px; }
+        /* 卡片內容排版 */
+        .card-header { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .tag-id { font-size: 0.85rem; color: #999; font-family: Consolas, monospace; font-weight: bold; display: block; margin-bottom: 2px; }
+        .tag-name { font-size: 1rem; color: #555; font-weight: bold; }
+        
+        .data-row { display: flex; align-items: baseline; justify-content: flex-end; }
+        .value { font-size: 2rem; font-weight: bold; color: #2c3e50; font-family: 'Arial', sans-serif; }
+        .unit { font-size: 0.9rem; color: #888; margin-left: 6px; }
         
         /* 載入動畫 */
-        .loading { text-align: center; padding: 50px; color: #999; }
+        .loading { text-align: center; padding: 50px; color: #aaa; font-size: 1.2rem; }
+        
+        /* RWD */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.3rem; }
+            .value { font-size: 1.8rem; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>尖山發電廠 - 廢油水監控</h1>
+        <h1>尖山發電廠 - 廢油水監控戰情室</h1>
         <div class="status-box">最後更新: <span id="last-update">連線中...</span></div>
     </header>
 
     <div id="app">
-        <div class="loading">正在從雲端讀取數據...</div>
+        <div class="loading">正在從雲端同步數據...</div>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // 1. 設定你的 Google Apps Script 網址 (請替換這裡！)
+    // 1. 設定你的 Google Apps Script 網址
     // ============================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec";
+    // 請確認這裡是你最新的網址 (如果不確定，請去 Apps Script 複製)
+    const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec"; 
 
     // ============================================================
-    // 2. 定義要顯示的數據與分組 (對應資料庫欄位名稱)
+    // 2. 定義儀表板內容 (增加 Tag ID 和 新增點位)
     // ============================================================
     const DASHBOARD_CONFIG = [
         {
@@ -67,13 +78,13 @@
             title: "過濾系統",
             className: "group-filter",
             items: [
-                { col: "LI018_VAL0",   name: "液位",     unit: "cm" },
-                { col: "SS018_VAL0",   name: "懸浮固體", unit: "mg/L" },
-                { col: "COD018_VAL0",  name: "化學需氧", unit: "mg/L" },
-                { col: "OFD018_VAL0",  name: "油份",     unit: "mg/L" },
-                { col: "NH3N018_VAL0", name: "氨氮",     unit: "mg/L" },
-                { col: "PHI018_VAL0",  name: "酸鹼值",   unit: "" },
-                { col: "FI018_VAL0",   name: "放流流量", unit: "M3/Hr" }
+                { col: "LI018_VAL0",   tag: "LI01-07",   name: "放流水液位",     unit: "cm" },
+                { col: "SS018_VAL0",   tag: "SS01-07",   name: "懸浮固體",       unit: "mg/L" },
+                { col: "COD018_VAL0",  tag: "COD01-07",  name: "化學需氧量",     unit: "mg/L" },
+                { col: "OFD018_VAL0",  tag: "OFD01-07",  name: "油份濃度",       unit: "mg/L" },
+                { col: "NH3N018_VAL0", tag: "NH3N01-07", name: "氨氮濃度",       unit: "mg/L" },
+                { col: "PHI018_VAL0",  tag: "PH01-07",   name: "酸鹼值",         unit: "" },
+                { col: "FI018_VAL0",   tag: "FIT01-07",  name: "放流流量",       unit: "M3/Hr" }
             ]
         },
         {
@@ -81,10 +92,10 @@
             title: "SBR 系統",
             className: "group-sbr",
             items: [
-                { col: "LI021_VAL0",   name: "污水收集槽", unit: "cm" },
-                { col: "FI021W_VAL0",  name: "進流流量",   unit: "M3/Hr" },
-                { col: "LI022_VAL0",   name: "處理設備",   unit: "cm" },
-                { col: "LI011_VAL0",   name: "回收水槽",   unit: "cm" }
+                { col: "LI021_VAL0",   tag: "LI02-01",   name: "污水收集槽液位", unit: "cm" },
+                { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "進流流量",       unit: "M3/Hr" },
+                { col: "LI022_VAL0",   tag: "LI02-02",   name: "處理設備液位",   unit: "cm" },
+                { col: "LI011_VAL0",   tag: "T02-04",    name: "回收水槽液位",   unit: "cm" }
             ]
         },
         {
@@ -92,50 +103,52 @@
             title: "廢油水槽 & DAF 系統",
             className: "group-daf",
             items: [
-                { col: "LI012_VAL0",   name: "廢水儲槽",   unit: "cm" },
-                { col: "LIT000_VAL0",  name: "廢油水緩衝", unit: "cm" },
-                { col: "LI003_VAL0",   name: "中間水槽",   unit: "cm" },
-                { col: "SLI004_VAL0",  name: "油膜檢知",   unit: "cm" },
-                { col: "FI003_VAL0",   name: "DAF 流量",   unit: "M3/Hr" },
-                { col: "FIT000B_VAL0", name: "廢油水進流", unit: "M3/Hr" }
+                { col: "LI012_VAL0",   tag: "LI01-01",   name: "廢水儲槽液位",   unit: "cm" },
+                { col: "LIT000_VAL0",  tag: "LI05-01",   name: "廢油水緩衝液位", unit: "cm" },
+                // 新增進出口流量
+                { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "廢油水進流 A",   unit: "M3/Hr" },
+                { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "廢油水進流 B",   unit: "M3/Hr" },
+                { col: "FI003_VAL0",   tag: "FIT05-04",  name: "出口(DAF)流量",  unit: "M3/Hr" },
+                
+                { col: "LI003_VAL0",   tag: "LI05-04",   name: "中間水槽液位",   unit: "cm" },
+                { col: "SLI004_VAL0",  tag: "LI05-06",   name: "油膜檢知液位",   unit: "cm" }
             ]
         }
     ];
 
     function fetchData() {
-        fetch(API_URL)
+        // 加個時間參數防止瀏覽器快取
+        fetch(API_URL + "?mode=read&t=" + new Date().getTime())
             .then(response => response.json())
             .then(data => {
-                // 更新時間 (從 Google Sheet 的 timestamp 欄位)
                 if(data.timestamp) {
                     document.getElementById('last-update').innerText = data.timestamp;
                 }
 
                 let htmlContent = '';
 
-                // 遍歷設定檔，產生 HTML
                 DASHBOARD_CONFIG.forEach(group => {
                     htmlContent += `
                         <div class="system-group ${group.className}">
-                            <div class="system-title">${group.title} <span>${group.items.length} 個點位</span></div>
+                            <div class="system-title">${group.title} <span>${group.items.length} 個監控點</span></div>
                             <div class="grid">
                     `;
 
                     group.items.forEach(item => {
-                        // 從 Google 傳回的大包資料中，找到對應欄位的值
-                        // 如果找不到，顯示 '--'
                         let val = data[item.col] !== undefined ? data[item.col] : '--';
                         
-                        // 簡單的數值格式化 (如果是很長的浮點數，切掉)
+                        // 數值格式化：如果是很長的浮點數，切到小數點後1位
                         if (!isNaN(val) && val.toString().indexOf('.') !== -1) {
                              val = parseFloat(val).toFixed(1);
-                             // 如果是整數 (例如 50.0) 去掉 .0
                              if(val.endsWith('.0')) val = val.replace('.0', '');
                         }
 
                         htmlContent += `
                             <div class="card">
-                                <h3>${item.name}</h3>
+                                <div class="card-header">
+                                    <span class="tag-id">${item.tag}</span>
+                                    <span class="tag-name">${item.name}</span>
+                                </div>
                                 <div class="data-row">
                                     <span class="value">${val}</span>
                                     <span class="unit">${item.unit}</span>
@@ -144,20 +157,20 @@
                         `;
                     });
 
-                    htmlContent += `</div></div>`; // 關閉 grid 和 system-group
+                    htmlContent += `</div></div>`;
                 });
 
                 document.getElementById('app').innerHTML = htmlContent;
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById('last-update').innerText = "連線失敗";
+                document.getElementById('last-update').innerText = "連線逾時";
                 document.getElementById('last-update').style.color = "red";
             });
     }
 
-    // 啟動時執行一次，之後每 5 秒刷新
     fetchData();
+    // 每 5 秒刷新一次
     setInterval(fetchData, 5000);
 
 </script>
