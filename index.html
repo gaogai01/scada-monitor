@@ -99,19 +99,19 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec"; 
     // ↑↑↑ 請確認這是你的 Google 網址 ↑↑↑
 
-    // ============================================================
-    // 2. 警報規則
+// ============================================================
+    // 2. 警報規則 (已更新數值與中文備註)
     // ============================================================
     const ALARMS = {
-        "LI018_VAL0":   { warn: 90,  crit: 100 },
-        "SS018_VAL0":   { warn: 20,  crit: 30  },
-        "COD018_VAL0":  { warn: 80,  crit: 100 },
-        "OFD018_VAL0":  { warn: 6,   crit: 10  },
-        "NH3N018_VAL0": { warn: 30,  crit: 60  },
-        "LI021_VAL0":   { warn: 410, crit: 430 },
-        "LI012_VAL0":   { warn: 210, crit: 230 },
-        "LIT000_VAL0":   { warn: 90, crit: 120 },
-        // PH值 logic 在 checkAlarm 函數中
+        "LI018_VAL0":   { warn: 90,  crit: 100 }, // LI01-07 放流水液位
+        "SS018_VAL0":   { warn: 20,  crit: 30  }, // SS01-07 懸浮固體
+        "COD018_VAL0":  { warn: 80,  crit: 100 }, // COD01-07 化學需氧量
+        "OFD018_VAL0":  { warn: 6,   crit: 10  }, // OFD01-07 油份濃度
+        "NH3N018_VAL0": { warn: 30,  crit: 60  }, // NH3N01-07 氨氮濃度
+        "LI021_VAL0":   { warn: 410, crit: 430 }, // LI02-01 污水收集槽液位
+        "LI012_VAL0":   { warn: 210, crit: 230 }, // LI01-01 廢水儲槽液位
+        "LIT000_VAL0":  { warn: 90,  crit: 120 }, // LI05-01 廢油水緩衝液位
+        // PH值 (PH01-07) 的判斷邏輯寫在下方的 checkAlarm 函數中
     };
 
     // ============================================================
