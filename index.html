@@ -6,75 +6,149 @@
     <title>尖山發電廠 - 廢油水雲端監控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- 全域設定 --- */
-        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; }
-        .container { max-width: 100%; margin: 0 auto; padding: 0 10px; }
-        
-        /* 標題區 */
-        header { background: white; padding: 8px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid #007bff; }
-        h1 { color: #2c3e50; margin: 0; font-size: 1.2rem; letter-spacing: 1px; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .btn-chart { background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 0.85rem; }
-        .status-box { font-size: 0.8rem; color: #555; background: #e9ecef; padding: 4px 10px; border-radius: 15px; font-weight: bold; }
-        
-        /* 分區標題 */
-        .system-group { margin-bottom: 20px; }
-        .system-title { font-size: 1.1rem; color: #343a40; margin-bottom: 8px; padding-left: 10px; border-left: 4px solid #28a745; font-weight: bold; display: flex; align-items: center; }
-        .system-title span { background: #d4edda; color: #155724; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: normal; }
+        /* --- CSS 變數定義 (方便切換深淺色) --- */
+        :root {
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #666666;
+            --text-value: #2c3e50;
+            --border-color: #e0e0e0;
+            --shadow: rgba(0,0,0,0.05);
+            
+            /* 警報顏色 (淺色模式) */
+            --warn-bg: #fff3cd; --warn-text: #856404; --warn-border: #ffc107;
+            --crit-bg: #f8d7da; --crit-text: #721c24; --crit-border: #dc3545;
+        }
 
-        /* 卡片網格 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        /* --- 深色模式變數 --- */
+        [data-theme="dark"] {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-sub: #aaaaaa;
+            --text-value: #ffffff;
+            --border-color: #333333;
+            --shadow: rgba(0,0,0,0.5);
+
+            /* 警報顏色 (深色模式 - 顏色加深以免刺眼) */
+            --warn-bg: #423605; --warn-text: #ffda6a; --warn-border: #997404;
+            --crit-bg: #4c1116; --crit-text: #ff8592; --crit-border: #a81624;
+        }
+
+        /* --- 基礎樣式 --- */
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 5px; transition: background 0.3s; }
+        .container { max-width: 100%; margin: 0 auto; padding: 0 5px; }
+        
+        /* 標題區 (Header) */
+        header { 
+            background: var(--bg-card); padding: 5px 15px; border-radius: 6px; 
+            box-shadow: 0 2px 5px var(--shadow); display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 8px; border-left: 5px solid #007bff; 
+        }
+        h1 { color: var(--text-main); margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+        
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        button.btn-ctrl { 
+            background: #007bff; color: white; border: none; padding: 4px 10px; 
+            border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;
+        }
+        button.btn-ctrl:hover { opacity: 0.9; }
+        .status-box { font-size: 0.75rem; color: var(--text-sub); background: var(--border-color); padding: 3px 8px; border-radius: 10px; font-weight: bold; }
+
+        /* --- 主版面配置 (Grid Layout) --- */
+        /* 這邊設定讓不同系統可以並排顯示，達到一頁看完全部 */
+        #app {
+            display: grid;
+            /* 電腦版：自動填滿，每欄最小寬度 280px (約可放3-4欄) */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px;
+            align-items: start; /* 靠上對齊 */
+        }
+
+        /* 系統區塊 */
+        .system-group { 
+            background: var(--bg-card); 
+            border-radius: 6px; 
+            padding: 8px; 
+            box-shadow: 0 1px 3px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .system-title { 
+            font-size: 0.95rem; color: var(--text-main); margin-bottom: 6px; 
+            padding-left: 8px; border-left: 4px solid #28a745; font-weight: bold; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .system-title span { background: var(--border-color); color: var(--text-sub); font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: normal; }
+
+        /* 卡片網格 (系統內部) */
+        .inner-grid { 
+            display: grid; 
+            /* 卡片變得更小更緊湊 */
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+            gap: 6px; 
+        }
         
         /* 數據卡片 */
-        .card { background: white; border-radius: 6px; padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s ease; border-top: 3px solid #ccc; position: relative; }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .card { 
+            background: var(--bg-body); /* 在卡片群組內稍微反白 */
+            border-radius: 4px; padding: 5px 8px; 
+            border: 1px solid var(--border-color); 
+            border-top: 3px solid #ccc; 
+            position: relative; 
+        }
         
-        /* --- 系統顏色設定 --- */
-        .group-d01 .card  { border-top-color: #007bff; } /* D01: 藍 */
-        .group-wm01 .card { border-top-color: #17a2b8; } /* WM01: 青 */
-        .group-wm02 .card { border-top-color: #6f42c1; } /* WM02: 紫 */
-        .group-wm05 .card { border-top-color: #fd7e14; } /* WM05: 橘 */
-        .group-d02 .card  { border-top-color: #20c997; } /* D02: 綠 */
-        .group-cds .card  { border-top-color: #e83e8c; } /* CDS: 粉紅 (新) */
+        /* 系統顏色條 */
+        .group-d01 .card  { border-top-color: #007bff; }
+        .group-wm01 .card { border-top-color: #17a2b8; }
+        .group-wm02 .card { border-top-color: #6f42c1; }
+        .group-wm05 .card { border-top-color: #fd7e14; }
+        .group-d02 .card  { border-top-color: #20c997; }
+        .group-cds .card  { border-top-color: #e83e8c; }
 
-        /* 警報顏色 */
-        .card.status-warning { background-color: #fff3cd; border-top-color: #ffc107 !important; animation: pulse-orange 2s infinite; }
-        .card.status-warning .value, .card.status-warning .tag-name { color: #856404; }
-        .card.status-critical { background-color: #f8d7da; border-top-color: #dc3545 !important; animation: pulse-red 1.5s infinite; }
-        .card.status-critical .value, .card.status-critical .tag-name { color: #721c24; font-weight: 900; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-
-        /* 卡片內容 */
-        .card-header { margin-bottom: 2px; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
-        .tag-name { font-size: 0.9rem; color: #444; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .tag-id { font-size: 0.7rem; color: #aaa; font-family: Consolas, monospace; } 
-        .data-row { display: flex; align-items: baseline; justify-content: center; margin-top: 5px; }
-        .value { font-size: 1.6rem; font-weight: bold; color: #2c3e50; font-family: 'Arial', sans-serif; line-height: 1; }
-        .unit { font-size: 0.75rem; color: #888; margin-left: 4px; }
+        /* 警報顏色動畫 */
+        .card.status-warning { background-color: var(--warn-bg); border-top-color: var(--warn-border) !important; animation: pulse-orange 2s infinite; }
+        .card.status-warning .value, .card.status-warning .tag-name { color: var(--warn-text); }
         
-        .loading { text-align: center; padding: 20px; color: #aaa; font-size: 1rem; }
+        .card.status-critical { background-color: var(--crit-bg); border-top-color: var(--crit-border) !important; animation: pulse-red 1.5s infinite; }
+        .card.status-critical .value, .card.status-critical .tag-name { color: var(--crit-text); font-weight: 900; }
+        
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 3px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-        /* 手機版 */
+        /* 卡片內容 - 字體極致縮小 */
+        .card-header { margin-bottom: 2px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
+        .tag-name { font-size: 0.8rem; color: var(--text-main); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tag-id { font-size: 0.65rem; color: var(--text-sub); font-family: Consolas, monospace; opacity: 0.7; } 
+        
+        .data-row { display: flex; align-items: baseline; justify-content: flex-end; margin-top: 2px; }
+        .value { font-size: 1.4rem; font-weight: bold; color: var(--text-value); font-family: 'Arial', sans-serif; line-height: 1; }
+        .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 2px; }
+        
+        .loading { grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-sub); font-size: 1rem; }
+
+        /* 手機版設定 (強制單欄堆疊，內部雙欄) */
         @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            h1 { font-size: 1.1rem; }
-            .value { font-size: 1.4rem; }
-            .container { padding: 0 5px; }
-            .modal-content { margin: 10% auto; width: 95%; padding: 15px; }
+            #app { grid-template-columns: 1fr; } /* 系統上下排 */
+            .inner-grid { grid-template-columns: 1fr 1fr; } /* 卡片左右排 */
+            h1 { font-size: 1rem; }
+            .value { font-size: 1.3rem; }
+            .modal-content { margin: 20% auto; width: 95%; padding: 15px; }
             .chart-controls { flex-direction: column; }
         }
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .close-btn { font-size: 1.5rem; cursor: pointer; }
-        .chart-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 5px; }
-        .control-group { display: flex; flex-direction: column; min-width: 120px; flex: 1; }
-        .control-group label { font-size: 0.8rem; color: #666; margin-bottom: 5px; font-weight: bold; }
-        select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9rem; }
-        .checkbox-list { max-height: 100px; overflow-y: auto; border: 1px solid #ddd; background: white; padding: 5px; border-radius: 4px; }
-        .checkbox-item { display: flex; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+        /* Modal 樣式 (支援深色) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: var(--bg-card); color: var(--text-main); margin: 3% auto; padding: 15px; border-radius: 8px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        .close-btn { font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
+        
+        .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; background: var(--bg-body); padding: 8px; border-radius: 5px; }
+        .control-group { display: flex; flex-direction: column; min-width: 100px; flex: 1; }
+        .control-group label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 3px; font-weight: bold; }
+        select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
+        .checkbox-list { max-height: 80px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-card); padding: 4px; border-radius: 4px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 0.8rem; margin-bottom: 2px; color: var(--text-main); }
         .checkbox-item input { margin-right: 5px; }
     </style>
 </head>
@@ -84,8 +158,9 @@
     <header>
         <h1>尖山發電廠 - 廢油水監控</h1>
         <div class="header-right">
-            <button class="btn-chart" onclick="openChartModal()">📊 歷史曲線</button>
-            <div class="status-box">更新: <span id="last-update">連線中...</span></div>
+            <button class="btn-ctrl" onclick="toggleTheme()" id="themeBtn">🌓</button>
+            <button class="btn-ctrl" onclick="openChartModal()">📊 趨勢圖</button>
+            <div class="status-box">更新: <span id="last-update">...</span></div>
         </div>
     </header>
 
@@ -97,7 +172,7 @@
 <div id="chartModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>歷史趨勢分析</h2>
+            <h3>歷史趨勢分析</h3>
             <span class="close-btn" onclick="closeChartModal()">&times;</span>
         </div>
         <div class="chart-controls">
@@ -114,12 +189,12 @@
                 <select id="categorySelect" onchange="renderCheckboxes()">
                     <option value="level">液位 (cm)</option>
                     <option value="flow">流量 (M3/Hr)</option>
-                    <option value="quality">水質監測 (PH, COD...)</option>
+                    <option value="quality">水質監測</option>
                     <option value="temp">溫度 (°C)</option>
                 </select>
             </div>
             <div class="control-group" style="flex: 2;">
-                <label>3. 選擇點位 (可複選)</label>
+                <label>3. 選擇點位</label>
                 <div id="tagCheckboxes" class="checkbox-list"></div>
             </div>
         </div>
@@ -137,28 +212,26 @@
     // ↑↑↑ 請確認這是您的網址 ↑↑↑
 
     // ============================================================
-    // 2. 警報規則 (已自動化 PH 判斷)
+    // 2. 警報規則
     // ============================================================
     const ALARMS = {
-        "LI018_VAL0":   { warn: 90,  crit: 100 }, // LI01-07
-        "SS018_VAL0":   { warn: 20,  crit: 30  }, // SS01-07
-        "COD018_VAL0":  { warn: 80,  crit: 100 }, // COD01-07
-        "OFD018_VAL0":  { warn: 6,   crit: 10  }, // OFD01-07
-        "NH3N018_VAL0": { warn: 30,  crit: 60  }, // NH3N01-07
-        "LI021_VAL0":   { warn: 410, crit: 430 }, // LI02-01
-        "LI012_VAL0":   { warn: 210, crit: 230 }, // LI01-01
-        "LIT000_VAL0":  { warn: 90,  crit: 120 }, // LI05-01
-        "D02_TEMP":     { warn: 35,  crit: 38  }, // D02 水溫
+        "LI018_VAL0":   { warn: 90,  crit: 100 },
+        "SS018_VAL0":   { warn: 20,  crit: 30  },
+        "COD018_VAL0":  { warn: 80,  crit: 100 },
+        "OFD018_VAL0":  { warn: 6,   crit: 10  },
+        "NH3N018_VAL0": { warn: 30,  crit: 60  },
+        "LI021_VAL0":   { warn: 410, crit: 430 },
+        "LI012_VAL0":   { warn: 210, crit: 230 },
+        "LIT000_VAL0":  { warn: 90,  crit: 120 },
+        "D02_TEMP":     { warn: 35,  crit: 38  },
     };
 
     // ============================================================
-    // 3. 儀表板內容 (已依照需求重新分類)
+    // 3. 儀表板內容 (已依照新順序調整)
     // ============================================================
     const DASHBOARD_CONFIG = [
         {
-            id: "d01",
-            title: "D01 放流水水質",
-            className: "group-d01",
+            id: "d01", title: "D01 放流水水質", className: "group-d01",
             items: [
                 { col: "SS018_VAL0",   tag: "SS01-07",   name: "懸浮固體",       unit: "mg/L", cat: "quality" },
                 { col: "COD018_VAL0",  tag: "COD01-07",  name: "化學需氧量",     unit: "mg/L", cat: "quality" },
@@ -168,18 +241,14 @@
             ]
         },
         {
-            id: "d02",
-            title: "D02 未接觸冷卻水 (CWMS)",
-            className: "group-d02",
+            id: "d02", title: "D02 未接觸冷卻水", className: "group-d02",
             items: [
                 { col: "D02_TEMP",     tag: "D02-Temp",  name: "放流水溫",       unit: "°C",   cat: "temp" },
                 { col: "D02_FLOW",     tag: "D02-Flow",  name: "放流水量",       unit: "M3",   cat: "flow" }
             ]
         },
         {
-            id: "wm01",
-            title: "WM01 事業廢水處理",
-            className: "group-wm01",
+            id: "wm01", title: "WM01 事業廢水", className: "group-wm01",
             items: [
                 { col: "LI012_VAL0",   tag: "LI01-01",   name: "廢水儲槽液位",   unit: "cm",   cat: "level" },
                 { col: "PHI013_VAL0",  tag: "PH01-03",   name: "第一酸鹼槽PH",   unit: "",     cat: "quality" },
@@ -190,19 +259,7 @@
             ]
         },
         {
-            id: "cds",
-            title: "CDS 加藥系統",
-            className: "group-cds",
-            items: [
-                { col: "LI044_VAL0",   tag: "LI044",     name: "鹼槽液位",       unit: "cm",   cat: "level" },
-                { col: "LI048_VAL0",   tag: "LI048",     name: "凝膠儲槽液位",   unit: "cm",   cat: "level" },
-                { col: "LI049_VAL0",   tag: "LI049",     name: "PAC儲槽液位",    unit: "cm",   cat: "level" }
-            ]
-        },
-        {
-            id: "wm02",
-            title: "WM02 生活污水處理",
-            className: "group-wm02",
+            id: "wm02", title: "WM02 生活污水", className: "group-wm02",
             items: [
                 { col: "LI021_VAL0",   tag: "LI02-01",   name: "生活污水儲槽",   unit: "cm",   cat: "level" },
                 { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
@@ -211,34 +268,58 @@
             ]
         },
         {
-            id: "wm05",
-            title: "WM05 含油事業廢水處理",
-            className: "group-wm05",
+            id: "wm05", title: "WM05 含油事業廢水", className: "group-wm05",
             items: [
-                { col: "LIT000_VAL0",  tag: "LI05-01",   name: "二段式API液位",  unit: "cm",   cat: "level" },
+                // 順序調整：API進口 -> 二段API -> API出口 -> 中間水槽 -> DAF進口 -> 靜態PH
                 { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "API進口流量",    unit: "M3/Hr",cat: "flow" },
+                { col: "LIT000_VAL0",  tag: "LI05-01",   name: "二段式API液位",  unit: "cm",   cat: "level" },
                 { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "API出口流量",    unit: "M3/Hr",cat: "flow" },
-                { col: "PHI015_VAL0",  tag: "PH05-05",   name: "靜態攪拌管PH",   unit: "",     cat: "quality" },
-                { col: "FI003_VAL0",   tag: "FIT05-04",  name: "DAF出口流量",    unit: "M3/Hr",cat: "flow" },
                 { col: "LI003_VAL0",   tag: "LI05-04",   name: "中間水槽液位",   unit: "cm",   cat: "level" },
-                { col: "SLI004_VAL0",  tag: "LI05-06",   name: "油膜檢知液位",   unit: "cm",   cat: "level" }
+                { col: "FI003_VAL0",   tag: "FIT05-04",  name: "DAF進口流量",    unit: "M3/Hr",cat: "flow" },
+                { col: "PHI015_VAL0",  tag: "PH05-05",   name: "靜態攪拌管PH",   unit: "",     cat: "quality" }
+                // 移除了 SLI004_VAL0 (油膜檢知)
+            ]
+        },
+        {
+            id: "cds", title: "CDS 加藥系統", className: "group-cds",
+            items: [
+                { col: "LI044_VAL0",   tag: "LI044",     name: "鹼槽液位",       unit: "cm",   cat: "level" },
+                { col: "LI048_VAL0",   tag: "LI048",     name: "凝膠儲槽液位",   unit: "cm",   cat: "level" },
+                { col: "LI049_VAL0",   tag: "LI049",     name: "PAC儲槽液位",    unit: "cm",   cat: "level" }
             ]
         }
     ];
 
+    // --- 深淺模式切換邏輯 ---
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        body.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        // 更新按鈕文字
+        document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓";
+        // 如果圖表存在，需要更新圖表顏色
+        if(myChart) updateChart(); 
+    }
+
+    // 載入時讀取設定
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        document.body.setAttribute("data-theme", savedTheme);
+        document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓";
+    }
+
+    // --- 數據與警報 ---
     function checkAlarm(colName, value) {
         let val = parseFloat(value);
         if (isNaN(val)) return "";
         
-        // 1. 自動判斷所有 PH 值 (開頭是 PHI 或是 D02_TEMP 以外)
-        // 只要欄位名稱包含 PHI，就套用 PH 的雙向警報
         if (colName.indexOf("PHI") !== -1) {
             if (val < 6 || val > 9) return "status-critical";
             if (val < 6.5 || val > 8.5) return "status-warning";
             return "";
         }
-
-        // 2. 一般數值判斷
         const rule = ALARMS[colName];
         if (rule) {
             if (val >= rule.crit) return "status-critical";
@@ -262,12 +343,11 @@
                     htmlContent += `
                         <div class="system-group ${group.className}">
                             <div class="system-title">${group.title} <span>${group.items.length}</span></div>
-                            <div class="grid">
+                            <div class="inner-grid">
                     `;
 
                     group.items.forEach(item => {
                         let val = data[item.col] !== undefined ? data[item.col] : '--';
-                        
                         if (!isNaN(val) && val.toString().indexOf('.') !== -1) {
                              val = parseFloat(val).toFixed(1);
                              if(val.endsWith('.0')) val = val.replace('.0', '');
@@ -289,7 +369,7 @@
     setInterval(fetchData, 5000);
     fetchData();
 
-    // --- 圖表邏輯 ---
+    // --- 圖表邏輯 (支援深色模式文字顏色) ---
     let historyData = null;
     let myChart = null;
 
@@ -363,7 +443,14 @@
 
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChart) myChart.destroy();
-        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8'];
+        
+        const isDark = document.body.getAttribute("data-theme") === "dark";
+        const gridColor = isDark ? '#444' : '#ddd';
+        const textColor = isDark ? '#eee' : '#666';
+        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c'];
+
+        Chart.defaults.color = textColor;
+        Chart.defaults.borderColor = gridColor;
 
         myChart = new Chart(ctx, {
             type: 'line',
@@ -373,6 +460,7 @@
                     label: col.label,
                     data: col.data,
                     borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length],
                     borderWidth: 2,
                     pointRadius: 2,
                     fill: false,
@@ -382,7 +470,13 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { x: { ticks: { maxTicksLimit: 10 } } }
+                scales: { 
+                    x: { ticks: { maxTicksLimit: 10, color: textColor }, grid: { color: gridColor } },
+                    y: { beginAtZero: false, ticks: { color: textColor }, grid: { color: gridColor } }
+                },
+                plugins: {
+                    legend: { labels: { color: textColor } }
+                }
             }
         });
     }
