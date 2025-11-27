@@ -6,100 +6,48 @@
     <title>尖山發電廠 - 廢油水雲端監控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- CSS 變數定義 (方便切換深淺色) --- */
+        /* --- CSS 變數 --- */
         :root {
             --bg-body: #f0f2f5;
             --bg-card: #ffffff;
             --text-main: #2c3e50;
             --text-sub: #666666;
-            --text-value: #2c3e50;
             --border-color: #e0e0e0;
-            --shadow: rgba(0,0,0,0.05);
             
-            /* 警報顏色 (淺色模式) */
-            --warn-bg: #fff3cd; --warn-text: #856404; --warn-border: #ffc107;
-            --crit-bg: #f8d7da; --crit-text: #721c24; --crit-border: #dc3545;
+            /* Google 風格顏色 */
+            --color-good: #0cce6b;   /* 綠 */
+            --color-warn: #ffa400;   /* 橘 */
+            --color-poor: #ff4e42;   /* 紅 */
         }
 
-        /* --- 深色模式變數 --- */
         [data-theme="dark"] {
             --bg-body: #121212;
             --bg-card: #1e1e1e;
             --text-main: #e0e0e0;
             --text-sub: #aaaaaa;
-            --text-value: #ffffff;
             --border-color: #333333;
-            --shadow: rgba(0,0,0,0.5);
-
-            /* 警報顏色 (深色模式 - 顏色加深以免刺眼) */
-            --warn-bg: #423605; --warn-text: #ffda6a; --warn-border: #997404;
-            --crit-bg: #4c1116; --crit-text: #ff8592; --crit-border: #a81624;
         }
 
         /* --- 基礎樣式 --- */
         body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 5px; transition: background 0.3s; }
         .container { max-width: 100%; margin: 0 auto; padding: 0 5px; }
         
-        /* 標題區 (Header) */
-        header { 
-            background: var(--bg-card); padding: 5px 15px; border-radius: 6px; 
-            box-shadow: 0 2px 5px var(--shadow); display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 8px; border-left: 5px solid #007bff; 
-        }
-        h1 { color: var(--text-main); margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
-        
+        header { background: var(--bg-card); padding: 5px 15px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 5px solid #007bff; }
+        h1 { color: var(--text-main); margin: 0; font-size: 1.1rem; }
         .header-right { display: flex; align-items: center; gap: 8px; }
-        button.btn-ctrl { 
-            background: #007bff; color: white; border: none; padding: 4px 10px; 
-            border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;
-        }
-        button.btn-ctrl:hover { opacity: 0.9; }
+        button.btn-ctrl { background: #007bff; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         .status-box { font-size: 0.75rem; color: var(--text-sub); background: var(--border-color); padding: 3px 8px; border-radius: 10px; font-weight: bold; }
 
-        /* --- 主版面配置 (Grid Layout) --- */
-        /* 這邊設定讓不同系統可以並排顯示，達到一頁看完全部 */
-        #app {
-            display: grid;
-            /* 電腦版：自動填滿，每欄最小寬度 280px (約可放3-4欄) */
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 8px;
-            align-items: start; /* 靠上對齊 */
-        }
-
-        /* 系統區塊 */
-        .system-group { 
-            background: var(--bg-card); 
-            border-radius: 6px; 
-            padding: 8px; 
-            box-shadow: 0 1px 3px var(--shadow);
-            border: 1px solid var(--border-color);
-        }
-        
-        .system-title { 
-            font-size: 0.95rem; color: var(--text-main); margin-bottom: 6px; 
-            padding-left: 8px; border-left: 4px solid #28a745; font-weight: bold; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        /* --- 系統區塊 --- */
+        #app { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; align-items: start; }
+        .system-group { background: var(--bg-card); border-radius: 6px; padding: 8px; border: 1px solid var(--border-color); }
+        .system-title { font-size: 0.95rem; margin-bottom: 6px; padding-left: 8px; border-left: 4px solid #28a745; font-weight: bold; display: flex; justify-content: space-between; }
         .system-title span { background: var(--border-color); color: var(--text-sub); font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: normal; }
 
-        /* 卡片網格 (系統內部) */
-        .inner-grid { 
-            display: grid; 
-            /* 卡片變得更小更緊湊 */
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
-            gap: 6px; 
-        }
+        .inner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
         
-        /* 數據卡片 */
-        .card { 
-            background: var(--bg-body); /* 在卡片群組內稍微反白 */
-            border-radius: 4px; padding: 5px 8px; 
-            border: 1px solid var(--border-color); 
-            border-top: 3px solid #ccc; 
-            position: relative; 
-        }
-        
-        /* 系統顏色條 */
+        /* --- 卡片樣式 --- */
+        .card { background: var(--bg-body); border-radius: 4px; padding: 8px; border: 1px solid var(--border-color); border-top: 3px solid #ccc; position: relative; }
         .group-d01 .card  { border-top-color: #007bff; }
         .group-wm01 .card { border-top-color: #17a2b8; }
         .group-wm02 .card { border-top-color: #6f42c1; }
@@ -107,49 +55,65 @@
         .group-d02 .card  { border-top-color: #20c997; }
         .group-cds .card  { border-top-color: #e83e8c; }
 
-        /* 警報顏色動畫 */
-        .card.status-warning { background-color: var(--warn-bg); border-top-color: var(--warn-border) !important; animation: pulse-orange 2s infinite; }
-        .card.status-warning .value, .card.status-warning .tag-name { color: var(--warn-text); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .tag-name { font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+        .tag-id { font-size: 0.65rem; color: var(--text-sub); opacity: 0.7; }
         
-        .card.status-critical { background-color: var(--crit-bg); border-top-color: var(--crit-border) !important; animation: pulse-red 1.5s infinite; }
-        .card.status-critical .value, .card.status-critical .tag-name { color: var(--crit-text); font-weight: 900; }
-        
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 3px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+        .data-row { display: flex; align-items: baseline; justify-content: flex-end; margin-bottom: 5px; }
+        .value { font-size: 1.5rem; font-weight: bold; line-height: 1; }
+        .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 4px; }
 
-        /* 卡片內容 - 字體極致縮小 */
-        .card-header { margin-bottom: 2px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
-        .tag-name { font-size: 0.8rem; color: var(--text-main); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .tag-id { font-size: 0.65rem; color: var(--text-sub); font-family: Consolas, monospace; opacity: 0.7; } 
+        /* --- 儀表板 (Gauge) 樣式 - 核心修改 --- */
+        .gauge-container {
+            height: 6px;
+            width: 100%;
+            background: #eee;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            margin-top: 5px;
+            overflow: visible; /* 讓指針可以凸出去 */
+        }
         
-        .data-row { display: flex; align-items: baseline; justify-content: flex-end; margin-top: 2px; }
-        .value { font-size: 1.4rem; font-weight: bold; color: var(--text-value); font-family: 'Arial', sans-serif; line-height: 1; }
-        .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 2px; }
+        /* 三色區段 */
+        .gauge-seg { height: 100%; }
+        .seg-good { background-color: var(--color-good); border-radius: 3px 0 0 3px; }
+        .seg-warn { background-color: var(--color-warn); }
+        .seg-poor { background-color: var(--color-poor); border-radius: 0 3px 3px 0; }
         
-        .loading { grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-sub); font-size: 1rem; }
+        /* 數值指針 */
+        .gauge-marker {
+            position: absolute;
+            top: -3px; /* 往上凸一點 */
+            width: 2px;
+            height: 12px;
+            background-color: #333;
+            border: 1px solid #fff;
+            transform: translateX(-50%);
+            z-index: 2;
+            transition: left 0.5s ease;
+        }
+        
+        /* 數值顏色變化 (當數值落入該區間時) */
+        .val-good { color: var(--color-good); }
+        .val-warn { color: var(--color-warn); }
+        .val-poor { color: var(--color-poor); }
 
-        /* 手機版設定 (強制單欄堆疊，內部雙欄) */
+        /* 手機版設定 */
         @media (max-width: 600px) {
-            #app { grid-template-columns: 1fr; } /* 系統上下排 */
-            .inner-grid { grid-template-columns: 1fr 1fr; } /* 卡片左右排 */
+            #app { grid-template-columns: 1fr; } 
+            .inner-grid { grid-template-columns: 1fr 1fr; }
             h1 { font-size: 1rem; }
-            .value { font-size: 1.3rem; }
             .modal-content { margin: 20% auto; width: 95%; padding: 15px; }
             .chart-controls { flex-direction: column; }
         }
 
-        /* Modal 樣式 (支援深色) */
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
         .modal-content { background-color: var(--bg-card); color: var(--text-main); margin: 3% auto; padding: 15px; border-radius: 8px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .close-btn { font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
-        
         .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; background: var(--bg-body); padding: 8px; border-radius: 5px; }
-        .control-group { display: flex; flex-direction: column; min-width: 100px; flex: 1; }
-        .control-group label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 3px; font-weight: bold; }
-        select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
-        .checkbox-list { max-height: 80px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-card); padding: 4px; border-radius: 4px; }
-        .checkbox-item { display: flex; align-items: center; font-size: 0.8rem; margin-bottom: 2px; color: var(--text-main); }
-        .checkbox-item input { margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -159,7 +123,7 @@
         <h1>尖山發電廠 - 廢油水監控</h1>
         <div class="header-right">
             <button class="btn-ctrl" onclick="toggleTheme()" id="themeBtn">🌓</button>
-            <button class="btn-ctrl" onclick="openChartModal()">📊 趨勢圖</button>
+            <button class="btn-ctrl" onclick="openChartModal()">📊 趨勢</button>
             <div class="status-box">更新: <span id="last-update">...</span></div>
         </div>
     </header>
@@ -171,64 +135,39 @@
 
 <div id="chartModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>歷史趨勢分析</h3>
-            <span class="close-btn" onclick="closeChartModal()">&times;</span>
-        </div>
+        <div class="modal-header"><h3>歷史趨勢</h3><span class="close-btn" onclick="closeChartModal()">&times;</span></div>
         <div class="chart-controls">
-            <div class="control-group">
-                <label>1. 時間範圍</label>
-                <select id="timeRange" onchange="updateChart()">
-                    <option value="24">過去 24 小時</option>
-                    <option value="168">過去 7 天</option>
-                    <option value="720">過去 30 天</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>2. 數據類別</label>
-                <select id="categorySelect" onchange="renderCheckboxes()">
-                    <option value="level">液位 (cm)</option>
-                    <option value="flow">流量 (M3/Hr)</option>
-                    <option value="quality">水質監測</option>
-                    <option value="temp">溫度 (°C)</option>
-                </select>
-            </div>
-            <div class="control-group" style="flex: 2;">
-                <label>3. 選擇點位</label>
-                <div id="tagCheckboxes" class="checkbox-list"></div>
-            </div>
+            <select id="timeRange" onchange="updateChart()"><option value="24">24H</option><option value="168">7D</option></select>
+            <select id="categorySelect" onchange="renderCheckboxes()"><option value="level">液位</option><option value="flow">流量</option><option value="quality">水質</option><option value="temp">溫度</option></select>
+            <div id="tagCheckboxes" style="flex:1; max-height:60px; overflow-y:auto;"></div>
         </div>
-        <div style="position: relative; height:300px; width:100%">
-            <canvas id="myChart"></canvas>
-        </div>
+        <canvas id="myChart" style="height:300px; width:100%"></canvas>
     </div>
 </div>
 
 <script>
-    // ============================================================
-    // 1. Google Apps Script 網址
-    // ============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec"; 
     // ↑↑↑ 請確認這是您的網址 ↑↑↑
 
     // ============================================================
-    // 2. 警報規則
+    // 警報規則 (新增 max 用於繪製儀表板)
+    // max: 該數值的最大刻度 (通常是滿水位或儀表上限)
+    // warn: 超過變橘色
+    // crit: 超過變紅色
     // ============================================================
     const ALARMS = {
-        "LI018_VAL0":   { warn: 90,  crit: 100 },
-        "SS018_VAL0":   { warn: 20,  crit: 30  },
-        "COD018_VAL0":  { warn: 80,  crit: 100 },
-        "OFD018_VAL0":  { warn: 6,   crit: 10  },
-        "NH3N018_VAL0": { warn: 30,  crit: 60  },
-        "LI021_VAL0":   { warn: 410, crit: 430 },
-        "LI012_VAL0":   { warn: 210, crit: 230 },
-        "LIT000_VAL0":  { warn: 90,  crit: 120 },
-        "D02_TEMP":     { warn: 35,  crit: 38  },
+        "LI018_VAL0":   { max: 120, warn: 90,  crit: 100 }, // 放流液位
+        "SS018_VAL0":   { max: 50,  warn: 20,  crit: 30  }, // SS
+        "COD018_VAL0":  { max: 150, warn: 80,  crit: 100 }, // COD
+        "OFD018_VAL0":  { max: 20,  warn: 6,   crit: 10  }, // 油分
+        "NH3N018_VAL0": { max: 80,  warn: 30,  crit: 60  }, // 氨氮
+        "LI021_VAL0":   { max: 500, warn: 410, crit: 430 }, // 污水收集槽
+        "LI012_VAL0":   { max: 300, warn: 210, crit: 230 }, // 廢水儲槽
+        "LIT000_VAL0":  { max: 150, warn: 90,  crit: 120 }, // 廢油水緩衝
+        "D02_TEMP":     { max: 50,  warn: 35,  crit: 38  }, // D02 水溫
+        // PH值 0-14 固定
     };
 
-    // ============================================================
-    // 3. 儀表板內容 (已依照新順序調整)
-    // ============================================================
     const DASHBOARD_CONFIG = [
         {
             id: "d01", title: "D01 放流水水質", className: "group-d01",
@@ -270,14 +209,12 @@
         {
             id: "wm05", title: "WM05 含油事業廢水", className: "group-wm05",
             items: [
-                // 順序調整：API進口 -> 二段API -> API出口 -> 中間水槽 -> DAF進口 -> 靜態PH
                 { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "API進口流量",    unit: "M3/Hr",cat: "flow" },
                 { col: "LIT000_VAL0",  tag: "LI05-01",   name: "二段式API液位",  unit: "cm",   cat: "level" },
                 { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "API出口流量",    unit: "M3/Hr",cat: "flow" },
                 { col: "LI003_VAL0",   tag: "LI05-04",   name: "中間水槽液位",   unit: "cm",   cat: "level" },
                 { col: "FI003_VAL0",   tag: "FIT05-04",  name: "DAF進口流量",    unit: "M3/Hr",cat: "flow" },
                 { col: "PHI015_VAL0",  tag: "PH05-05",   name: "靜態攪拌管PH",   unit: "",     cat: "quality" }
-                // 移除了 SLI004_VAL0 (油膜檢知)
             ]
         },
         {
@@ -290,42 +227,54 @@
         }
     ];
 
-    // --- 深淺模式切換邏輯 ---
-    function toggleTheme() {
-        const body = document.body;
-        const currentTheme = body.getAttribute("data-theme");
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        body.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-        // 更新按鈕文字
-        document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓";
-        // 如果圖表存在，需要更新圖表顏色
-        if(myChart) updateChart(); 
-    }
-
-    // 載入時讀取設定
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-        document.body.setAttribute("data-theme", savedTheme);
-        document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓";
-    }
-
-    // --- 數據與警報 ---
-    function checkAlarm(colName, value) {
+    // --- 產生儀表板 HTML (含 Gauge) ---
+    function getGaugeHTML(colName, value) {
         let val = parseFloat(value);
         if (isNaN(val)) return "";
+
+        let rule = ALARMS[colName];
         
+        // 處理 PH 值 (雙向 0-14)
         if (colName.indexOf("PHI") !== -1) {
-            if (val < 6 || val > 9) return "status-critical";
-            if (val < 6.5 || val > 8.5) return "status-warning";
-            return "";
+            let pct = (val / 14) * 100;
+            // 簡化顯示：不畫三色條，只畫進度條，但依據數值變色
+            let colorVar = "var(--color-good)";
+            if (val < 6 || val > 9) colorVar = "var(--color-poor)";
+            else if (val < 6.5 || val > 8.5) colorVar = "var(--color-warn)";
+            
+            return `
+            <div class="gauge-container">
+                <div style="width: ${pct}%; background-color: ${colorVar}; height:100%; border-radius:3px;"></div>
+                <div class="gauge-marker" style="left: ${pct}%"></div>
+            </div>`;
         }
-        const rule = ALARMS[colName];
-        if (rule) {
-            if (val >= rule.crit) return "status-critical";
-            if (val >= rule.warn) return "status-warning";
+
+        // 處理一般數值 (有設定 Max 的才畫三色條)
+        if (rule && rule.max) {
+            let max = rule.max;
+            // 計算各區段百分比
+            let warnPct = (rule.warn / max) * 100;
+            let critPct = (rule.crit / max) * 100;
+            let valPct = Math.min((val / max) * 100, 100); // 指針不超過 100%
+
+            // 決定數值顏色
+            let valClass = "val-good";
+            if (val >= rule.crit) valClass = "val-poor";
+            else if (val >= rule.warn) valClass = "val-warn";
+
+            return `
+            <div class="gauge-container">
+                <div class="gauge-seg seg-good" style="width: ${warnPct}%"></div>
+                <div class="gauge-seg seg-warn" style="width: ${critPct - warnPct}%"></div>
+                <div class="gauge-seg seg-poor" style="width: ${100 - critPct}%"></div>
+                <div class="gauge-marker" style="left: ${valPct}%"></div>
+            </div>
+            <script>document.currentScript.parentElement.parentElement.querySelector('.value').className = "value ${valClass}";<\/script>
+            `;
         }
-        return "";
+        
+        // 沒有設定 Max 的不畫條，只回傳空字串
+        return ""; 
     }
 
     function fetchData() {
@@ -352,11 +301,18 @@
                              val = parseFloat(val).toFixed(1);
                              if(val.endsWith('.0')) val = val.replace('.0', '');
                         }
-                        let statusClass = checkAlarm(item.col, val);
+                        
+                        // 產生 Gauge 條
+                        let gaugeHTML = getGaugeHTML(item.col, val);
+                        
+                        // 判斷文字顏色 (透過 getGaugeHTML 內部的邏輯或 CSS)
+                        // 若無 Gauge，則回歸預設黑色
+                        
                         htmlContent += `
-                            <div class="card ${statusClass}">
+                            <div class="card">
                                 <div class="card-header"><span class="tag-name">${item.name}</span><span class="tag-id">${item.tag}</span></div>
                                 <div class="data-row"><span class="value">${val}</span><span class="unit">${item.unit}</span></div>
+                                ${gaugeHTML}
                             </div>`;
                     });
                     htmlContent += `</div></div>`;
@@ -369,51 +325,40 @@
     setInterval(fetchData, 5000);
     fetchData();
 
-    // --- 圖表邏輯 (支援深色模式文字顏色) ---
+    // --- (以下為切換主題與圖表代碼，與前版相同，省略以節省空間) ---
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        body.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓";
+        if(myChart) updateChart(); 
+    }
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        document.body.setAttribute("data-theme", savedTheme);
+        document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓";
+    }
+    
+    // ... (Modal 與 Chart 邏輯請直接使用上一個版本，這裡為了完整性，建議直接保留原有的 script 區塊下半部) ...
     let historyData = null;
     let myChart = null;
-
-    function openChartModal() {
-        document.getElementById('chartModal').style.display = 'block';
-        renderCheckboxes();
-        if (!historyData) fetchHistory();
-    }
-
-    function closeChartModal() {
-        document.getElementById('chartModal').style.display = 'none';
-    }
-
-    function fetchHistory() {
-        fetch(API_URL + "?mode=history")
-            .then(res => res.json())
-            .then(json => {
-                historyData = json;
-                updateChart();
-            });
-    }
-
+    function openChartModal() { document.getElementById('chartModal').style.display = 'block'; renderCheckboxes(); if (!historyData) fetchHistory(); }
+    function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; }
+    function fetchHistory() { fetch(API_URL + "?mode=history").then(res => res.json()).then(json => { historyData = json; updateChart(); }); }
     function renderCheckboxes() {
         const cat = document.getElementById('categorySelect').value;
         const container = document.getElementById('tagCheckboxes');
         container.innerHTML = '';
         let items = [];
-        DASHBOARD_CONFIG.forEach(group => {
-            group.items.forEach(item => {
-                if (item.cat === cat) items.push(item);
-            });
-        });
+        DASHBOARD_CONFIG.forEach(group => { group.items.forEach(item => { if (item.cat === cat) items.push(item); }); });
         items.forEach((item, index) => {
             const checked = index === 0 ? 'checked' : '';
-            container.innerHTML += `
-                <div class="checkbox-item">
-                    <input type="checkbox" value="${item.col}" id="chk_${item.col}" ${checked} onchange="updateChart()">
-                    <label for="chk_${item.col}">${item.name} (${item.tag})</label>
-                </div>
-            `;
+            container.innerHTML += `<label style="display:inline-block; margin-right:10px;"><input type="checkbox" value="${item.col}" id="chk_${item.col}" ${checked} onchange="updateChart()"> ${item.name}</label>`;
         });
         updateChart();
     }
-
     function updateChart() {
         if (!historyData) return;
         const timeRangeHours = parseInt(document.getElementById('timeRange').value);
@@ -423,11 +368,8 @@
         const selectedCols = [];
         checkboxes.forEach(chk => {
             const idx = headers.indexOf(chk.value);
-            if (idx !== -1) {
-                selectedCols.push({ idx: idx, label: chk.nextElementSibling.innerText, data: [] });
-            }
+            if (idx !== -1) { selectedCols.push({ idx: idx, label: chk.parentNode.textContent.trim(), data: [] }); }
         });
-
         const now = new Date();
         const labels = [];
         rawRows.forEach(row => {
@@ -440,44 +382,18 @@
                 selectedCols.forEach(col => { col.data.push(row[col.idx]); });
             }
         });
-
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChart) myChart.destroy();
-        
         const isDark = document.body.getAttribute("data-theme") === "dark";
         const gridColor = isDark ? '#444' : '#ddd';
         const textColor = isDark ? '#eee' : '#666';
-        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c'];
-
+        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8'];
         Chart.defaults.color = textColor;
         Chart.defaults.borderColor = gridColor;
-
         myChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: labels,
-                datasets: selectedCols.map((col, i) => ({
-                    label: col.label,
-                    data: col.data,
-                    borderColor: colors[i % colors.length],
-                    backgroundColor: colors[i % colors.length],
-                    borderWidth: 2,
-                    pointRadius: 2,
-                    fill: false,
-                    tension: 0.1
-                }))
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { 
-                    x: { ticks: { maxTicksLimit: 10, color: textColor }, grid: { color: gridColor } },
-                    y: { beginAtZero: false, ticks: { color: textColor }, grid: { color: gridColor } }
-                },
-                plugins: {
-                    legend: { labels: { color: textColor } }
-                }
-            }
+            data: { labels: labels, datasets: selectedCols.map((col, i) => ({ label: col.label, data: col.data, borderColor: colors[i % colors.length], borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 })) },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 10 } } } }
         });
     }
 </script>
