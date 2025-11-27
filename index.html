@@ -30,11 +30,12 @@
         .card:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
         
         /* --- 系統顏色設定 --- */
-        .group-d01 .card  { border-top-color: #007bff; } /* 藍 */
-        .group-wm01 .card { border-top-color: #17a2b8; } /* 青 */
-        .group-wm02 .card { border-top-color: #6f42c1; } /* 紫 */
-        .group-wm05 .card { border-top-color: #fd7e14; } /* 橘 */
-        .group-d02 .card  { border-top-color: #20c997; } /* 綠 (新增 D02 顏色) */
+        .group-d01 .card  { border-top-color: #007bff; } /* D01: 藍 */
+        .group-wm01 .card { border-top-color: #17a2b8; } /* WM01: 青 */
+        .group-wm02 .card { border-top-color: #6f42c1; } /* WM02: 紫 */
+        .group-wm05 .card { border-top-color: #fd7e14; } /* WM05: 橘 */
+        .group-d02 .card  { border-top-color: #20c997; } /* D02: 綠 */
+        .group-cds .card  { border-top-color: #e83e8c; } /* CDS: 粉紅 (新) */
 
         /* 警報顏色 */
         .card.status-warning { background-color: #fff3cd; border-top-color: #ffc107 !important; animation: pulse-orange 2s infinite; }
@@ -136,7 +137,7 @@
     // ↑↑↑ 請確認這是您的網址 ↑↑↑
 
     // ============================================================
-    // 2. 警報規則
+    // 2. 警報規則 (已自動化 PH 判斷)
     // ============================================================
     const ALARMS = {
         "LI018_VAL0":   { warn: 90,  crit: 100 }, // LI01-07
@@ -147,12 +148,11 @@
         "LI021_VAL0":   { warn: 410, crit: 430 }, // LI02-01
         "LI012_VAL0":   { warn: 210, crit: 230 }, // LI01-01
         "LIT000_VAL0":  { warn: 90,  crit: 120 }, // LI05-01
-        // D02 的警報規則 (標準: 水溫35/38)
-        "D02_TEMP":     { warn: 35,  crit: 38  }, 
+        "D02_TEMP":     { warn: 35,  crit: 38  }, // D02 水溫
     };
 
     // ============================================================
-    // 3. 儀表板內容 (新增 D02)
+    // 3. 儀表板內容 (已依照需求重新分類)
     // ============================================================
     const DASHBOARD_CONFIG = [
         {
@@ -182,8 +182,21 @@
             className: "group-wm01",
             items: [
                 { col: "LI012_VAL0",   tag: "LI01-01",   name: "廢水儲槽液位",   unit: "cm",   cat: "level" },
+                { col: "PHI013_VAL0",  tag: "PH01-03",   name: "第一酸鹼槽PH",   unit: "",     cat: "quality" },
+                { col: "PHI014_VAL0",  tag: "PH01-04",   name: "膠凝槽PH",       unit: "",     cat: "quality" },
+                { col: "PHI017_VAL0",  tag: "PH01-06",   name: "第二酸鹼槽PH",   unit: "",     cat: "quality" },
                 { col: "LI018_VAL0",   tag: "LI01-07",   name: "放流水液位",     unit: "cm",   cat: "level" },
                 { col: "FI018_VAL0",   tag: "FIT01-07",  name: "放流流量",       unit: "M3/Hr",cat: "flow" }
+            ]
+        },
+        {
+            id: "cds",
+            title: "CDS 加藥系統",
+            className: "group-cds",
+            items: [
+                { col: "LI044_VAL0",   tag: "LI044",     name: "鹼槽液位",       unit: "cm",   cat: "level" },
+                { col: "LI048_VAL0",   tag: "LI048",     name: "凝膠儲槽液位",   unit: "cm",   cat: "level" },
+                { col: "LI049_VAL0",   tag: "LI049",     name: "PAC儲槽液位",    unit: "cm",   cat: "level" }
             ]
         },
         {
@@ -191,9 +204,9 @@
             title: "WM02 生活污水處理",
             className: "group-wm02",
             items: [
-                { col: "LI021_VAL0",   tag: "LI02-01",   name: "污水收集槽",     unit: "cm",   cat: "level" },
-                { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "進流流量",       unit: "M3/Hr",cat: "flow" },
-                { col: "LI022_VAL0",   tag: "LI02-02",   name: "處理設備液位",   unit: "cm",   cat: "level" },
+                { col: "LI021_VAL0",   tag: "LI02-01",   name: "生活污水儲槽",   unit: "cm",   cat: "level" },
+                { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
+                { col: "LI022_VAL0",   tag: "LI02-02",   name: "SBR液位",        unit: "cm",   cat: "level" },
                 { col: "LI011_VAL0",   tag: "T02-04",    name: "回收水槽液位",   unit: "cm",   cat: "level" }
             ]
         },
@@ -202,11 +215,13 @@
             title: "WM05 含油事業廢水處理",
             className: "group-wm05",
             items: [
-                { col: "LIT000_VAL0",  tag: "LI05-01",   name: "廢油水緩衝",     unit: "cm",   cat: "level" },
-                { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "進流 A",         unit: "M3/Hr",cat: "flow" },
-                { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "進流 B",         unit: "M3/Hr",cat: "flow" },
-                { col: "FI003_VAL0",   tag: "FIT05-04",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
-                { col: "LI003_VAL0",   tag: "LI05-04",   name: "中間水槽",       unit: "cm",   cat: "level" }
+                { col: "LIT000_VAL0",  tag: "LI05-01",   name: "二段式API液位",  unit: "cm",   cat: "level" },
+                { col: "FIT000B_VAL0", tag: "FIT05-01B", name: "API進口流量",    unit: "M3/Hr",cat: "flow" },
+                { col: "FIT000A_VAL0", tag: "FIT05-01A", name: "API出口流量",    unit: "M3/Hr",cat: "flow" },
+                { col: "PHI015_VAL0",  tag: "PH05-05",   name: "靜態攪拌管PH",   unit: "",     cat: "quality" },
+                { col: "FI003_VAL0",   tag: "FIT05-04",  name: "DAF出口流量",    unit: "M3/Hr",cat: "flow" },
+                { col: "LI003_VAL0",   tag: "LI05-04",   name: "中間水槽液位",   unit: "cm",   cat: "level" },
+                { col: "SLI004_VAL0",  tag: "LI05-06",   name: "油膜檢知液位",   unit: "cm",   cat: "level" }
             ]
         }
     ];
@@ -214,11 +229,16 @@
     function checkAlarm(colName, value) {
         let val = parseFloat(value);
         if (isNaN(val)) return "";
-        if (colName === "PHI018_VAL0") {
+        
+        // 1. 自動判斷所有 PH 值 (開頭是 PHI 或是 D02_TEMP 以外)
+        // 只要欄位名稱包含 PHI，就套用 PH 的雙向警報
+        if (colName.indexOf("PHI") !== -1) {
             if (val < 6 || val > 9) return "status-critical";
             if (val < 6.5 || val > 8.5) return "status-warning";
             return "";
         }
+
+        // 2. 一般數值判斷
         const rule = ALARMS[colName];
         if (rule) {
             if (val >= rule.crit) return "status-critical";
