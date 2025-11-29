@@ -6,114 +6,115 @@
     <title>尖山發電廠 - 廢油水雲端監控</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- CSS 變數 --- */
+        /* --- CSS 變數定義 --- */
         :root {
-            --bg-body: #f0f2f5;
-            --bg-card: #ffffff;
-            --text-main: #2c3e50;
-            --text-sub: #666666;
-            --border-color: #e0e0e0;
-            
-            /* Google 風格顏色 */
-            --color-good: #0cce6b;   /* 綠 */
-            --color-warn: #ffa400;   /* 橘 */
-            --color-poor: #ff4e42;   /* 紅 */
+            --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #2c3e50; --text-sub: #666666; --text-value: #2c3e50;
+            --border-color: #e0e0e0; --shadow: rgba(0,0,0,0.05);
+            --warn-bg: #fff3cd; --warn-text: #856404; --warn-border: #ffc107;
+            --crit-bg: #f8d7da; --crit-text: #721c24; --crit-border: #dc3545;
+            --gauge-good: #28a745; --gauge-warn: #ffc107; --gauge-bad: #dc3545; --gauge-bg: #e9ecef;
         }
-
         [data-theme="dark"] {
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-sub: #aaaaaa;
-            --border-color: #333333;
+            --bg-body: #121212; --bg-card: #1e1e1e; --text-main: #e0e0e0; --text-sub: #aaaaaa; --text-value: #ffffff;
+            --border-color: #333333; --shadow: rgba(0,0,0,0.5);
+            --warn-bg: #423605; --warn-text: #ffda6a; --warn-border: #997404;
+            --crit-bg: #4c1116; --crit-text: #ff8592; --crit-border: #a81624;
+            --gauge-bg: #333;
         }
 
         /* --- 基礎樣式 --- */
         body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 5px; transition: background 0.3s; }
         .container { max-width: 100%; margin: 0 auto; padding: 0 5px; }
         
-        header { background: var(--bg-card); padding: 5px 15px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 5px solid #007bff; }
-        h1 { color: var(--text-main); margin: 0; font-size: 1.1rem; }
+        /* 標題區 */
+        header { background: var(--bg-card); padding: 5px 15px; border-radius: 6px; box-shadow: 0 2px 5px var(--shadow); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-left: 5px solid #007bff; }
+        h1 { color: var(--text-main); margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
         .header-right { display: flex; align-items: center; gap: 8px; }
-        button.btn-ctrl { background: #007bff; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        button.btn-ctrl { background: #007bff; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
         .status-box { font-size: 0.75rem; color: var(--text-sub); background: var(--border-color); padding: 3px 8px; border-radius: 10px; font-weight: bold; }
 
-        /* --- 系統區塊 --- */
-        #app { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; align-items: start; }
-        .system-group { background: var(--bg-card); border-radius: 6px; padding: 8px; border: 1px solid var(--border-color); }
-        .system-title { font-size: 0.95rem; margin-bottom: 6px; padding-left: 8px; border-left: 4px solid #28a745; font-weight: bold; display: flex; justify-content: space-between; }
-        .system-title span { background: var(--border-color); color: var(--text-sub); font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: normal; }
-
-        .inner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
+        /* --- 版面配置 --- */
+        #app { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; align-items: start; }
         
-        /* --- 卡片樣式 --- */
-        .card { background: var(--bg-body); border-radius: 4px; padding: 8px; border: 1px solid var(--border-color); border-top: 3px solid #ccc; position: relative; }
-        .group-d01 .card  { border-top-color: #007bff; }
+        .system-group { background: var(--bg-card); border-radius: 10px; padding: 10px; box-shadow: 0 1px 3px var(--shadow); border: 1px solid var(--border-color); }
+        
+        /* --- 系統標題 (修改重點：背景填色) --- */
+        .system-title { 
+            font-size: 1rem; color: #fff; /* 文字改白色 */
+            margin-bottom: 10px; padding: 6px 15px; 
+            border-radius: 50px; font-weight: bold; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .system-title span { 
+            background: rgba(255,255,255,0.25); color: #fff; /* 計數器改半透明白 */
+            font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; 
+        }
+
+        /* 標題背景色設定 */
+        .group-d01 .system-title { background: linear-gradient(135deg, #007bff, #0056b3); }
+        .group-d02 .system-title { background: linear-gradient(135deg, #20c997, #198754); }
+        .group-wm01 .system-title { background: linear-gradient(135deg, #17a2b8, #117a8b); }
+        .group-wm02 .system-title { background: linear-gradient(135deg, #6f42c1, #59359a); }
+        .group-wm05 .system-title { background: linear-gradient(135deg, #fd7e14, #d35400); }
+        .group-cds .system-title { background: linear-gradient(135deg, #e83e8c, #c2175b); }
+        .group-acc .system-title { background: linear-gradient(135deg, #343a40, #212529); }
+
+        /* --- 卡片網格 --- */
+        .inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        /* 卡片樣式 */
+        .card { background: var(--bg-body); border-radius: 6px; padding: 6px 10px; border: 1px solid var(--border-color); border-top: 3px solid #ccc; position: relative; }
+        
+        /* 系統顏色條 (維持原本設定，與標題呼應) */
+        .group-d01 .card { border-top-color: #007bff; }
         .group-wm01 .card { border-top-color: #17a2b8; }
         .group-wm02 .card { border-top-color: #6f42c1; }
         .group-wm05 .card { border-top-color: #fd7e14; }
-        .group-d02 .card  { border-top-color: #20c997; }
-        .group-cds .card  { border-top-color: #e83e8c; }
+        .group-d02 .card { border-top-color: #20c997; }
+        .group-cds .card { border-top-color: #e83e8c; }
+        .group-acc .card { border-top-color: #343a40; }
 
-        .card-header { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .tag-name { font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
-        .tag-id { font-size: 0.65rem; color: var(--text-sub); opacity: 0.7; }
-        
-        .data-row { display: flex; align-items: baseline; justify-content: flex-end; margin-bottom: 5px; }
-        .value { font-size: 1.5rem; font-weight: bold; line-height: 1; }
-        .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 4px; }
+        /* 警報顏色 */
+        .card.status-warning { background-color: var(--warn-bg); border-top-color: var(--warn-border) !important; animation: pulse-orange 2s infinite; }
+        .card.status-warning .value, .card.status-warning .tag-name { color: var(--warn-text); }
+        .card.status-critical { background-color: var(--crit-bg); border-top-color: var(--crit-border) !important; animation: pulse-red 1.5s infinite; }
+        .card.status-critical .value, .card.status-critical .tag-name { color: var(--crit-text); font-weight: 900; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); } 70% { box-shadow: 0 0 0 3px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
 
-        /* --- 儀表板 (Gauge) 樣式 - 核心修改 --- */
-        .gauge-container {
-            height: 6px;
-            width: 100%;
-            background: #eee;
-            border-radius: 3px;
-            position: relative;
-            display: flex;
-            margin-top: 5px;
-            overflow: visible; /* 讓指針可以凸出去 */
-        }
+        /* 卡片內容 */
+        .card-header { margin-bottom: 2px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
+        .tag-name { font-size: 0.8rem; color: var(--text-main); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+        .tag-id { font-size: 0.65rem; color: var(--text-sub); font-family: Consolas, monospace; opacity: 0.7; } 
+        .data-row { display: flex; align-items: baseline; justify-content: flex-end; margin-top: 2px; margin-bottom: 4px; }
+        .value { font-size: 1.4rem; font-weight: bold; color: var(--text-value); font-family: 'Arial', sans-serif; line-height: 1; }
+        .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 2px; }
         
-        /* 三色區段 */
+        /* 儀表板條 */
+        .gauge-container { height: 5px; width: 100%; background: var(--gauge-bg); border-radius: 3px; position: relative; display: flex; overflow: visible; margin-top: 2px; }
         .gauge-seg { height: 100%; }
-        .seg-good { background-color: var(--color-good); border-radius: 3px 0 0 3px; }
-        .seg-warn { background-color: var(--color-warn); }
-        .seg-poor { background-color: var(--color-poor); border-radius: 0 3px 3px 0; }
-        
-        /* 數值指針 */
-        .gauge-marker {
-            position: absolute;
-            top: -3px; /* 往上凸一點 */
-            width: 2px;
-            height: 12px;
-            background-color: #333;
-            border: 1px solid #fff;
-            transform: translateX(-50%);
-            z-index: 2;
-            transition: left 0.5s ease;
-        }
-        
-        /* 數值顏色變化 (當數值落入該區間時) */
-        .val-good { color: var(--color-good); }
-        .val-warn { color: var(--color-warn); }
-        .val-poor { color: var(--color-poor); }
+        .seg-good { background-color: var(--gauge-good); border-radius: 3px 0 0 3px; }
+        .seg-warn { background-color: var(--gauge-warn); }
+        .seg-poor { background-color: var(--gauge-bad); border-radius: 0 3px 3px 0; }
+        .seg-rev-poor { background-color: var(--gauge-bad); border-radius: 3px 0 0 3px; }
+        .seg-rev-warn { background-color: var(--gauge-warn); }
+        .seg-rev-good { background-color: var(--gauge-good); border-radius: 0 3px 3px 0; }
+        .gauge-marker { position: absolute; top: -2px; width: 2px; height: 9px; background-color: var(--text-main); border: 1px solid var(--bg-card); transform: translateX(-50%); z-index: 2; transition: left 0.5s ease; }
 
-        /* 手機版設定 */
-        @media (max-width: 600px) {
-            #app { grid-template-columns: 1fr; } 
-            .inner-grid { grid-template-columns: 1fr 1fr; }
-            h1 { font-size: 1rem; }
-            .modal-content { margin: 20% auto; width: 95%; padding: 15px; }
-            .chart-controls { flex-direction: column; }
-        }
-
+        .loading { grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-sub); font-size: 1rem; }
+        @media (max-width: 600px) { #app { grid-template-columns: 1fr; } h1 { font-size: 1rem; } .value { font-size: 1.3rem; } .modal-content { margin: 20% auto; width: 95%; padding: 15px; } .chart-controls { flex-direction: column; } }
         /* Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
         .modal-content { background-color: var(--bg-card); color: var(--text-main); margin: 3% auto; padding: 15px; border-radius: 8px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .close-btn { font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
         .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; background: var(--bg-body); padding: 8px; border-radius: 5px; }
+        .control-group { display: flex; flex-direction: column; min-width: 100px; flex: 1; }
+        .control-group label { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 3px; font-weight: bold; }
+        select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
+        .checkbox-list { max-height: 80px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-card); padding: 4px; border-radius: 4px; }
+        .checkbox-item { display: flex; align-items: center; font-size: 0.8rem; margin-bottom: 2px; color: var(--text-main); }
+        .checkbox-item input { margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -149,23 +150,24 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbzwFRkiITDbICO-zisn_rr-6uT0-DFNeMvgFFYWFTVKHGrZz7K9XbIi18NBW4Gr2Nty/exec"; 
     // ↑↑↑ 請確認這是您的網址 ↑↑↑
 
-    // ============================================================
-    // 警報規則 (新增 max 用於繪製儀表板)
-    // max: 該數值的最大刻度 (通常是滿水位或儀表上限)
-    // warn: 超過變橘色
-    // crit: 超過變紅色
-    // ============================================================
     const ALARMS = {
-        "LI018_VAL0":   { max: 120, warn: 90,  crit: 100 }, // 放流液位
-        "SS018_VAL0":   { max: 50,  warn: 20,  crit: 30  }, // SS
-        "COD018_VAL0":  { max: 150, warn: 80,  crit: 100 }, // COD
-        "OFD018_VAL0":  { max: 20,  warn: 6,   crit: 10  }, // 油分
-        "NH3N018_VAL0": { max: 80,  warn: 30,  crit: 60  }, // 氨氮
-        "LI021_VAL0":   { max: 500, warn: 410, crit: 430 }, // 污水收集槽
-        "LI012_VAL0":   { max: 300, warn: 210, crit: 230 }, // 廢水儲槽
-        "LIT000_VAL0":  { max: 150, warn: 90,  crit: 120 }, // 廢油水緩衝
-        "D02_TEMP":     { max: 50,  warn: 35,  crit: 38  }, // D02 水溫
-        // PH值 0-14 固定
+        "LI018_VAL0":   { max: 120, warn: 90,  crit: 100 },
+        "SS018_VAL0":   { max: 60,  warn: 20,  crit: 30  },
+        "COD018_VAL0":  { max: 150, warn: 80,  crit: 100 },
+        "OFD018_VAL0":  { max: 20,  warn: 6,   crit: 10  },
+        "NH3N018_VAL0": { max: 80,  warn: 30,  crit: 60  },
+        "LI021_VAL0":   { max: 500, warn: 410, crit: 430 },
+        "LI012_VAL0":   { max: 300, warn: 210, crit: 230 },
+        "LIT000_VAL0":  { max: 150, warn: 90,  crit: 120 },
+        "D02_TEMP":     { max: 50,  warn: 35,  crit: 38  },
+        "LI003_VAL0":   { max: 120, warn: 95,  crit: 100 }, // 中間水槽
+        "LI022_VAL0":   { max: 250, warn: 186, crit: 196 }, // SBR
+        "LI011_VAL0":   { max: 250, warn: 180, crit: 200 }, // 回收水
+        // 低液位警報
+        "LI043_VAL0":   { max: 100, warn: 30,  crit: 20 },
+        "LI044_VAL0":   { max: 100, warn: 30,  crit: 20 },
+        "LI048_VAL0":   { max: 100, warn: 30,  crit: 20 },
+        "LI049_VAL0":   { max: 100, warn: 30,  crit: 20 },
     };
 
     const DASHBOARD_CONFIG = [
@@ -189,7 +191,10 @@
         {
             id: "wm01", title: "WM01 事業廢水", className: "group-wm01",
             items: [
-                { col: "LI012_VAL0",   tag: "LI01-01",   name: "廢水儲槽液位",   unit: "cm",   cat: "level" },
+                // 1. 廢水儲槽改名調勻槽
+                { col: "LI012_VAL0",   tag: "LI01-01",   name: "調勻槽液位",     unit: "cm",   cat: "level" },
+                // 2. 新增調勻槽出口流量
+                { col: "FI012_VAL0",   tag: "FIT01-01",  name: "調勻槽出口",     unit: "M3/Hr",cat: "flow" },
                 { col: "PHI013_VAL0",  tag: "PH01-03",   name: "第一酸鹼槽PH",   unit: "",     cat: "quality" },
                 { col: "PHI014_VAL0",  tag: "PH01-04",   name: "膠凝槽PH",       unit: "",     cat: "quality" },
                 { col: "PHI017_VAL0",  tag: "PH01-06",   name: "第二酸鹼槽PH",   unit: "",     cat: "quality" },
@@ -203,6 +208,8 @@
                 { col: "LI021_VAL0",   tag: "LI02-01",   name: "生活污水儲槽",   unit: "cm",   cat: "level" },
                 { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
                 { col: "LI022_VAL0",   tag: "LI02-02",   name: "SBR液位",        unit: "cm",   cat: "level" },
+                // 3. 新增回收水流量 (在回收水槽液位之前)
+                { col: "FI018B_VAL0",  tag: "FIT01-08",  name: "回收水流量",     unit: "M3/Hr",cat: "flow" },
                 { col: "LI011_VAL0",   tag: "T02-04",    name: "回收水槽液位",   unit: "cm",   cat: "level" }
             ]
         },
@@ -222,180 +229,67 @@
             items: [
                 { col: "LI044_VAL0",   tag: "LI044",     name: "鹼槽液位",       unit: "cm",   cat: "level" },
                 { col: "LI048_VAL0",   tag: "LI048",     name: "凝膠儲槽液位",   unit: "cm",   cat: "level" },
-                { col: "LI049_VAL0",   tag: "LI049",     name: "PAC儲槽液位",    unit: "cm",   cat: "level" }
+                { col: "LI049_VAL0",   tag: "LI049",     name: "PAC儲槽液位",    unit: "cm",   cat: "level" },
+                { col: "LI043_VAL0",   tag: "LI043",     name: "酸槽液位",       unit: "cm",   cat: "level" }
+            ]
+        },
+        {
+            id: "acc", title: "ACC 每日累積流量 (今日)", className: "group-acc",
+            items: [
+                // 4. ACC 小項：標題改中文，右上角代碼改資料庫欄位
+                { col: "FI000A_Q_VAL0_DAILY", tag: "FI000A_Q_VAL0", name: "API出口日流量", unit: "M3", cat: "flow" },
+                { col: "FI000B_Q_VAL0_DAILY", tag: "FI000B_Q_VAL0", name: "API進口日流量", unit: "M3", cat: "flow" },
+                { col: "FI003_Q_VAL0_DAILY",  tag: "FI003_Q_VAL0",  name: "DAF進口日流量", unit: "M3", cat: "flow" },
+                { col: "FI012_Q_VAL0_DAILY",  tag: "FI012_Q_VAL0",  name: "調勻槽出日流量",unit: "M3", cat: "flow" },
+                { col: "FI018_Q_VAL0_DAILY",  tag: "FI018_Q_VAL0",  name: "D01放流日流量", unit: "M3", cat: "flow" },
+                { col: "FI018B_Q_VAL0_DAILY", tag: "FI018B_Q_VAL0", name: "回收水日流量",  unit: "M3", cat: "flow" },
+                { col: "FI021W_Q_VAL0_DAILY", tag: "FI021W_Q_VAL0", name: "生活污水日流量",unit: "M3", cat: "flow" },
+                { col: "FI031_Q_VAL0_DAILY",  tag: "FI031_Q_VAL0",  name: "污泥槽出日流量",unit: "M3", cat: "flow" }
             ]
         }
     ];
 
-    // --- 產生儀表板 HTML (含 Gauge) ---
     function getGaugeHTML(colName, value) {
-        let val = parseFloat(value);
-        if (isNaN(val)) return "";
-
+        let val = parseFloat(value); if (isNaN(val)) return "";
         let rule = ALARMS[colName];
-        
-        // 處理 PH 值 (雙向 0-14)
         if (colName.indexOf("PHI") !== -1) {
             let pct = (val / 14) * 100;
-            // 簡化顯示：不畫三色條，只畫進度條，但依據數值變色
-            let colorVar = "var(--color-good)";
-            if (val < 6 || val > 9) colorVar = "var(--color-poor)";
-            else if (val < 6.5 || val > 8.5) colorVar = "var(--color-warn)";
-            
-            return `
-            <div class="gauge-container">
-                <div style="width: ${pct}%; background-color: ${colorVar}; height:100%; border-radius:3px;"></div>
-                <div class="gauge-marker" style="left: ${pct}%"></div>
-            </div>`;
+            let colorVar = "var(--gauge-good)";
+            if (val < 6 || val > 9) colorVar = "var(--gauge-bad)"; else if (val < 6.5 || val > 8.5) colorVar = "var(--gauge-warn)";
+            return `<div class="gauge-container"><div style="width: ${pct}%; background-color: ${colorVar}; height:100%; border-radius:3px;"></div><div class="gauge-marker" style="left: ${pct}%"></div></div>`;
         }
-
-        // 處理一般數值 (有設定 Max 的才畫三色條)
         if (rule && rule.max) {
             let max = rule.max;
-            // 計算各區段百分比
-            let warnPct = (rule.warn / max) * 100;
-            let critPct = (rule.crit / max) * 100;
-            let valPct = Math.min((val / max) * 100, 100); // 指針不超過 100%
-
-            // 決定數值顏色
-            let valClass = "val-good";
-            if (val >= rule.crit) valClass = "val-poor";
-            else if (val >= rule.warn) valClass = "val-warn";
-
-            return `
-            <div class="gauge-container">
-                <div class="gauge-seg seg-good" style="width: ${warnPct}%"></div>
-                <div class="gauge-seg seg-warn" style="width: ${critPct - warnPct}%"></div>
-                <div class="gauge-seg seg-poor" style="width: ${100 - critPct}%"></div>
-                <div class="gauge-marker" style="left: ${valPct}%"></div>
-            </div>
-            <script>document.currentScript.parentElement.parentElement.querySelector('.value').className = "value ${valClass}";<\/script>
-            `;
-        }
-        
-        // 沒有設定 Max 的不畫條，只回傳空字串
-        return ""; 
-    }
-
-    function fetchData() {
-        fetch(API_URL + "?mode=read&t=" + new Date().getTime())
-            .then(response => response.json())
-            .then(data => {
-                if(data.timestamp) {
-                    let timeOnly = data.timestamp.split(' ')[1] || data.timestamp;
-                    document.getElementById('last-update').innerText = timeOnly;
-                }
-
-                let htmlContent = '';
-
-                DASHBOARD_CONFIG.forEach(group => {
-                    htmlContent += `
-                        <div class="system-group ${group.className}">
-                            <div class="system-title">${group.title} <span>${group.items.length}</span></div>
-                            <div class="inner-grid">
-                    `;
-
-                    group.items.forEach(item => {
-                        let val = data[item.col] !== undefined ? data[item.col] : '--';
-                        if (!isNaN(val) && val.toString().indexOf('.') !== -1) {
-                             val = parseFloat(val).toFixed(1);
-                             if(val.endsWith('.0')) val = val.replace('.0', '');
-                        }
-                        
-                        // 產生 Gauge 條
-                        let gaugeHTML = getGaugeHTML(item.col, val);
-                        
-                        // 判斷文字顏色 (透過 getGaugeHTML 內部的邏輯或 CSS)
-                        // 若無 Gauge，則回歸預設黑色
-                        
-                        htmlContent += `
-                            <div class="card">
-                                <div class="card-header"><span class="tag-name">${item.name}</span><span class="tag-id">${item.tag}</span></div>
-                                <div class="data-row"><span class="value">${val}</span><span class="unit">${item.unit}</span></div>
-                                ${gaugeHTML}
-                            </div>`;
-                    });
-                    htmlContent += `</div></div>`;
-                });
-                document.getElementById('app').innerHTML = htmlContent;
-            })
-            .catch(err => console.error(err));
-    }
-
-    setInterval(fetchData, 5000);
-    fetchData();
-
-    // --- (以下為切換主題與圖表代碼，與前版相同，省略以節省空間) ---
-    function toggleTheme() {
-        const body = document.body;
-        const currentTheme = body.getAttribute("data-theme");
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        body.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-        document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓";
-        if(myChart) updateChart(); 
-    }
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-        document.body.setAttribute("data-theme", savedTheme);
-        document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓";
-    }
-    
-    // ... (Modal 與 Chart 邏輯請直接使用上一個版本，這裡為了完整性，建議直接保留原有的 script 區塊下半部) ...
-    let historyData = null;
-    let myChart = null;
-    function openChartModal() { document.getElementById('chartModal').style.display = 'block'; renderCheckboxes(); if (!historyData) fetchHistory(); }
-    function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; }
-    function fetchHistory() { fetch(API_URL + "?mode=history").then(res => res.json()).then(json => { historyData = json; updateChart(); }); }
-    function renderCheckboxes() {
-        const cat = document.getElementById('categorySelect').value;
-        const container = document.getElementById('tagCheckboxes');
-        container.innerHTML = '';
-        let items = [];
-        DASHBOARD_CONFIG.forEach(group => { group.items.forEach(item => { if (item.cat === cat) items.push(item); }); });
-        items.forEach((item, index) => {
-            const checked = index === 0 ? 'checked' : '';
-            container.innerHTML += `<label style="display:inline-block; margin-right:10px;"><input type="checkbox" value="${item.col}" id="chk_${item.col}" ${checked} onchange="updateChart()"> ${item.name}</label>`;
-        });
-        updateChart();
-    }
-    function updateChart() {
-        if (!historyData) return;
-        const timeRangeHours = parseInt(document.getElementById('timeRange').value);
-        const headers = historyData.headers;
-        const rawRows = historyData.data;
-        const checkboxes = document.querySelectorAll('#tagCheckboxes input:checked');
-        const selectedCols = [];
-        checkboxes.forEach(chk => {
-            const idx = headers.indexOf(chk.value);
-            if (idx !== -1) { selectedCols.push({ idx: idx, label: chk.parentNode.textContent.trim(), data: [] }); }
-        });
-        const now = new Date();
-        const labels = [];
-        rawRows.forEach(row => {
-            let timeStr = row[0];
-            let rowDate = new Date(timeStr);
-            let diffHours = (now - rowDate) / 1000 / 60 / 60;
-            if (diffHours <= timeRangeHours) {
-                let label = rowDate.getMonth()+1 + "/" + rowDate.getDate() + " " + rowDate.getHours() + ":" + (rowDate.getMinutes()<10?'0':'') + rowDate.getMinutes();
-                labels.push(label);
-                selectedCols.forEach(col => { col.data.push(row[col.idx]); });
+            let valPct = Math.min((val / max) * 100, 100);
+            let isLowAlarm = rule.warn > rule.crit;
+            if (isLowAlarm) {
+                let critPct = (rule.crit / max) * 100; let warnPct = (rule.warn / max) * 100;
+                return `<div class="gauge-container"><div class="gauge-seg seg-rev-poor" style="width: ${critPct}%"></div><div class="gauge-seg seg-rev-warn" style="width: ${warnPct - critPct}%"></div><div class="gauge-seg seg-rev-good" style="width: ${100 - warnPct}%"></div><div class="gauge-marker" style="left: ${valPct}%"></div></div>`;
+            } else {
+                let warnPct = (rule.warn / max) * 100; let critPct = (rule.crit / max) * 100;
+                return `<div class="gauge-container"><div class="gauge-seg seg-good" style="width: ${warnPct}%"></div><div class="gauge-seg seg-warn" style="width: ${critPct - warnPct}%"></div><div class="gauge-seg seg-poor" style="width: ${100 - critPct}%"></div><div class="gauge-marker" style="left: ${valPct}%"></div></div>`;
             }
-        });
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if (myChart) myChart.destroy();
-        const isDark = document.body.getAttribute("data-theme") === "dark";
-        const gridColor = isDark ? '#444' : '#ddd';
-        const textColor = isDark ? '#eee' : '#666';
-        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8'];
-        Chart.defaults.color = textColor;
-        Chart.defaults.borderColor = gridColor;
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: selectedCols.map((col, i) => ({ label: col.label, data: col.data, borderColor: colors[i % colors.length], borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 })) },
-            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 10 } } } }
-        });
+        }
+        return "";
     }
+
+    function checkAlarm(colName, value) {
+        let val = parseFloat(value); if (isNaN(val)) return "";
+        if (colName.indexOf("PHI") !== -1) { if (val < 6 || val > 9) return "status-critical"; if (val < 6.5 || val > 8.5) return "status-warning"; return ""; }
+        const rule = ALARMS[colName];
+        if (rule) {
+            let isLowAlarm = rule.warn > rule.crit;
+            if (isLowAlarm) { if (val <= rule.crit) return "status-critical"; if (val <= rule.warn) return "status-warning"; }
+            else { if (val >= rule.crit) return "status-critical"; if (val >= rule.warn) return "status-warning"; }
+        }
+        return "";
+    }
+
+    function fetchData() { fetch(API_URL + "?mode=read&t=" + new Date().getTime()).then(response => response.json()).then(data => { if(data.timestamp) document.getElementById('last-update').innerText = data.timestamp.split(' ')[1]; let htmlContent = ''; DASHBOARD_CONFIG.forEach(group => { htmlContent += `<div class="system-group ${group.className}"><div class="system-title">${group.title} <span>${group.items.length}</span></div><div class="inner-grid">`; group.items.forEach(item => { let val = data[item.col] !== undefined ? data[item.col] : '--'; if (!isNaN(val) && val.toString().indexOf('.') !== -1) { val = parseFloat(val).toFixed(1); if(val.endsWith('.0')) val = val.replace('.0', ''); } let statusClass = checkAlarm(item.col, val); let gaugeHTML = getGaugeHTML(item.col, val); htmlContent += `<div class="card ${statusClass}"><div class="card-header"><span class="tag-name">${item.name}</span><span class="tag-id">${item.tag}</span></div><div class="data-row"><span class="value">${val}</span><span class="unit">${item.unit}</span></div>${gaugeHTML}</div>`; }); htmlContent += `</div></div>`; }); document.getElementById('app').innerHTML = htmlContent; }).catch(err => console.error(err)); }
+    setInterval(fetchData, 5000); fetchData();
+    function toggleTheme() { const body = document.body; const newTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark"; body.setAttribute("data-theme", newTheme); localStorage.setItem("theme", newTheme); document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓"; if(myChart) updateChart(); }
+    const savedTheme = localStorage.getItem("theme"); if (savedTheme) { document.body.setAttribute("data-theme", savedTheme); document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓"; }
+    let historyData = null; let myChart = null; function openChartModal() { document.getElementById('chartModal').style.display = 'block'; renderCheckboxes(); if (!historyData) fetchHistory(); } function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; } function fetchHistory() { fetch(API_URL + "?mode=history").then(res => res.json()).then(json => { historyData = json; updateChart(); }); } function renderCheckboxes() { const cat = document.getElementById('categorySelect').value; const container = document.getElementById('tagCheckboxes'); container.innerHTML = ''; let items = []; DASHBOARD_CONFIG.forEach(group => { group.items.forEach(item => { if (item.cat === cat) items.push(item); }); }); items.forEach((item, index) => { container.innerHTML += `<label style="display:inline-block; margin-right:10px; color:var(--text-main);"><input type="checkbox" value="${item.col}" id="chk_${item.col}" ${index===0?'checked':''} onchange="updateChart()"> ${item.name}</label>`; }); updateChart(); } function updateChart() { if (!historyData) return; const timeRangeHours = parseInt(document.getElementById('timeRange').value); const headers = historyData.headers; const rawRows = historyData.data; const checkboxes = document.querySelectorAll('#tagCheckboxes input:checked'); const selectedCols = []; checkboxes.forEach(chk => { const idx = headers.indexOf(chk.value); if (idx !== -1) selectedCols.push({ idx: idx, label: chk.parentNode.textContent.trim(), data: [] }); }); const now = new Date(); const labels = []; rawRows.forEach(row => { let timeStr = row[0]; let rowDate = new Date(timeStr); let diffHours = (now - rowDate) / 1000 / 60 / 60; if (diffHours <= timeRangeHours) { let label = rowDate.getMonth()+1 + "/" + rowDate.getDate() + " " + rowDate.getHours() + ":" + (rowDate.getMinutes()<10?'0':'') + rowDate.getMinutes(); labels.push(label); selectedCols.forEach(col => { col.data.push(row[col.idx]); }); } }); const ctx = document.getElementById('myChart').getContext('2d'); if (myChart) myChart.destroy(); const isDark = document.body.getAttribute("data-theme") === "dark"; const gridColor = isDark ? '#444' : '#ddd'; const textColor = isDark ? '#eee' : '#666'; const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c', '#343a40']; Chart.defaults.color = textColor; Chart.defaults.borderColor = gridColor; myChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: selectedCols.map((col, i) => ({ label: col.label, data: col.data, borderColor: colors[i % colors.length], borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 })) }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 10 } } } } }); }
 </script>
 
 </body>
