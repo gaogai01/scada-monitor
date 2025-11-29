@@ -38,20 +38,14 @@
         
         .system-group { background: var(--bg-card); border-radius: 10px; padding: 10px; box-shadow: 0 1px 3px var(--shadow); border: 1px solid var(--border-color); }
         
-        /* --- 系統標題 (修改重點：背景填色) --- */
+        /* 系統標題 */
         .system-title { 
-            font-size: 1rem; color: #fff; /* 文字改白色 */
-            margin-bottom: 10px; padding: 6px 15px; 
-            border-radius: 50px; font-weight: bold; 
-            display: flex; justify-content: space-between; align-items: center;
+            font-size: 1rem; color: #fff; margin-bottom: 10px; padding: 6px 15px; 
+            border-radius: 50px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .system-title span { 
-            background: rgba(255,255,255,0.25); color: #fff; /* 計數器改半透明白 */
-            font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; 
-        }
+        .system-title span { background: rgba(255,255,255,0.25); color: #fff; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
 
-        /* 標題背景色設定 */
         .group-d01 .system-title { background: linear-gradient(135deg, #007bff, #0056b3); }
         .group-d02 .system-title { background: linear-gradient(135deg, #20c997, #198754); }
         .group-wm01 .system-title { background: linear-gradient(135deg, #17a2b8, #117a8b); }
@@ -60,13 +54,11 @@
         .group-cds .system-title { background: linear-gradient(135deg, #e83e8c, #c2175b); }
         .group-acc .system-title { background: linear-gradient(135deg, #343a40, #212529); }
 
-        /* --- 卡片網格 --- */
+        /* 卡片網格 */
         .inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         
         /* 卡片樣式 */
         .card { background: var(--bg-body); border-radius: 6px; padding: 6px 10px; border: 1px solid var(--border-color); border-top: 3px solid #ccc; position: relative; }
-        
-        /* 系統顏色條 (維持原本設定，與標題呼應) */
         .group-d01 .card { border-top-color: #007bff; }
         .group-wm01 .card { border-top-color: #17a2b8; }
         .group-wm02 .card { border-top-color: #6f42c1; }
@@ -90,7 +82,7 @@
         .value { font-size: 1.4rem; font-weight: bold; color: var(--text-value); font-family: 'Arial', sans-serif; line-height: 1; }
         .unit { font-size: 0.7rem; color: var(--text-sub); margin-left: 2px; }
         
-        /* 儀表板條 */
+        /* 儀表板 */
         .gauge-container { height: 5px; width: 100%; background: var(--gauge-bg); border-radius: 3px; position: relative; display: flex; overflow: visible; margin-top: 2px; }
         .gauge-seg { height: 100%; }
         .seg-good { background-color: var(--gauge-good); border-radius: 3px 0 0 3px; }
@@ -102,10 +94,16 @@
         .gauge-marker { position: absolute; top: -2px; width: 2px; height: 9px; background-color: var(--text-main); border: 1px solid var(--bg-card); transform: translateX(-50%); z-index: 2; transition: left 0.5s ease; }
 
         .loading { grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-sub); font-size: 1rem; }
-        @media (max-width: 600px) { #app { grid-template-columns: 1fr; } h1 { font-size: 1rem; } .value { font-size: 1.3rem; } .modal-content { margin: 20% auto; width: 95%; padding: 15px; } .chart-controls { flex-direction: column; } }
-        /* Modal */
+        @media (max-width: 600px) { #app { grid-template-columns: 1fr; } h1 { font-size: 1rem; } .value { font-size: 1.3rem; } .chart-controls { flex-direction: column; } }
+        
+        /* Modal - 優化尺寸 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
-        .modal-content { background-color: var(--bg-card); color: var(--text-main); margin: 3% auto; padding: 15px; border-radius: 8px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { 
+            background-color: var(--bg-card); color: var(--text-main); 
+            margin: 2% auto; padding: 15px; border-radius: 8px; 
+            width: 95%; max-width: 1100px; /* 加寬 */
+            max-height: 95vh; overflow-y: auto; 
+        }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .close-btn { font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
         .chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; background: var(--bg-body); padding: 8px; border-radius: 5px; }
@@ -115,6 +113,8 @@
         .checkbox-list { max-height: 80px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-card); padding: 4px; border-radius: 4px; }
         .checkbox-item { display: flex; align-items: center; font-size: 0.8rem; margin-bottom: 2px; color: var(--text-main); }
         .checkbox-item input { margin-right: 5px; }
+        /* 圖表高度調整 */
+        .chart-container { position: relative; height: 450px; width: 100%; } 
     </style>
 </head>
 <body>
@@ -142,7 +142,9 @@
             <select id="categorySelect" onchange="renderCheckboxes()"><option value="level">液位</option><option value="flow">流量</option><option value="quality">水質</option><option value="temp">溫度</option></select>
             <div id="tagCheckboxes" style="flex:1; max-height:60px; overflow-y:auto;"></div>
         </div>
-        <canvas id="myChart" style="height:300px; width:100%"></canvas>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -160,14 +162,23 @@
         "LI012_VAL0":   { max: 300, warn: 210, crit: 230 },
         "LIT000_VAL0":  { max: 150, warn: 90,  crit: 120 },
         "D02_TEMP":     { max: 50,  warn: 35,  crit: 38  },
-        "LI003_VAL0":   { max: 120, warn: 95,  crit: 100 }, // 中間水槽
-        "LI022_VAL0":   { max: 250, warn: 186, crit: 196 }, // SBR
-        "LI011_VAL0":   { max: 250, warn: 180, crit: 200 }, // 回收水
+        "LI003_VAL0":   { max: 120, warn: 95,  crit: 100 }, 
+        "LI022_VAL0":   { max: 250, warn: 186, crit: 196 }, 
+        "LI011_VAL0":   { max: 250, warn: 180, crit: 200 }, 
         // 低液位警報
         "LI043_VAL0":   { max: 100, warn: 30,  crit: 20 },
         "LI044_VAL0":   { max: 100, warn: 30,  crit: 20 },
         "LI048_VAL0":   { max: 100, warn: 30,  crit: 20 },
         "LI049_VAL0":   { max: 100, warn: 30,  crit: 20 },
+        // ACC 流量
+        "FI000A_Q_VAL0_DAILY": { max: 20, warn: 18, crit: 19 }, 
+        "FI000B_Q_VAL0_DAILY": { max: 20, warn: 18, crit: 19 }, 
+        "FI003_Q_VAL0_DAILY":  { max: 20, warn: 18, crit: 19 }, 
+        "FI012_Q_VAL0_DAILY":  { max: 24, warn: 22, crit: 23 }, 
+        "FI018_Q_VAL0_DAILY":  { max: 40, warn: 36, crit: 38 }, 
+        "FI018B_Q_VAL0_DAILY": { max: 40, warn: 36, crit: 38 }, 
+        "FI021W_Q_VAL0_DAILY": { max: 16, warn: 14, crit: 15 }, 
+        //"FI031_Q_VAL0_DAILY":  { max: 20, warn: 16, crit: 18 }, 
     };
 
     const DASHBOARD_CONFIG = [
@@ -178,28 +189,26 @@
                 { col: "COD018_VAL0",  tag: "COD01-07",  name: "化學需氧量",     unit: "mg/L", cat: "quality" },
                 { col: "OFD018_VAL0",  tag: "OFD01-07",  name: "油份濃度",       unit: "mg/L", cat: "quality" },
                 { col: "NH3N018_VAL0", tag: "NH3N01-07", name: "氨氮濃度",       unit: "mg/L", cat: "quality" },
-                { col: "PHI018_VAL0",  tag: "PH01-07",   name: "酸鹼值",         unit: "",     cat: "quality" }
+                { col: "PHI018_VAL0",  tag: "PH01-07",   name: "酸鹼值",         unit: "",     cat: "quality" },
+                { col: "LI018_VAL0",   tag: "LI01-07",   name: "檢知槽液位",     unit: "cm",   cat: "level" }
             ]
         },
         {
             id: "d02", title: "D02 未接觸冷卻水", className: "group-d02",
             items: [
-                { col: "D02_TEMP",     tag: "D02-Temp",  name: "放流水溫",       unit: "°C",   cat: "temp" },
-                { col: "D02_FLOW",     tag: "D02-Flow",  name: "放流水量",       unit: "M3",   cat: "flow" }
+                { col: "D02_TEMP",     tag: "D02-Temp",  name: "D02水溫",       unit: "°C",   cat: "temp" },
+                { col: "D02_FLOW",     tag: "D02-Flow",  name: "D02水量",       unit: "M3",   cat: "flow" }
             ]
         },
         {
             id: "wm01", title: "WM01 事業廢水", className: "group-wm01",
             items: [
-                // 1. 廢水儲槽改名調勻槽
                 { col: "LI012_VAL0",   tag: "LI01-01",   name: "調勻槽液位",     unit: "cm",   cat: "level" },
-                // 2. 新增調勻槽出口流量
                 { col: "FI012_VAL0",   tag: "FIT01-01",  name: "調勻槽出口",     unit: "M3/Hr",cat: "flow" },
                 { col: "PHI013_VAL0",  tag: "PH01-03",   name: "第一酸鹼槽PH",   unit: "",     cat: "quality" },
                 { col: "PHI014_VAL0",  tag: "PH01-04",   name: "膠凝槽PH",       unit: "",     cat: "quality" },
                 { col: "PHI017_VAL0",  tag: "PH01-06",   name: "第二酸鹼槽PH",   unit: "",     cat: "quality" },
-                { col: "LI018_VAL0",   tag: "LI01-07",   name: "放流水液位",     unit: "cm",   cat: "level" },
-                { col: "FI018_VAL0",   tag: "FIT01-07",  name: "放流流量",       unit: "M3/Hr",cat: "flow" }
+                { col: "FI018_VAL0",   tag: "FIT01-07",  name: "D01流量",       unit: "M3/Hr",cat: "flow" }
             ]
         },
         {
@@ -208,7 +217,6 @@
                 { col: "LI021_VAL0",   tag: "LI02-01",   name: "生活污水儲槽",   unit: "cm",   cat: "level" },
                 { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
                 { col: "LI022_VAL0",   tag: "LI02-02",   name: "SBR液位",        unit: "cm",   cat: "level" },
-                // 3. 新增回收水流量 (在回收水槽液位之前)
                 { col: "FI018B_VAL0",  tag: "FIT01-08",  name: "回收水流量",     unit: "M3/Hr",cat: "flow" },
                 { col: "LI011_VAL0",   tag: "T02-04",    name: "回收水槽液位",   unit: "cm",   cat: "level" }
             ]
@@ -236,15 +244,14 @@
         {
             id: "acc", title: "ACC 每日累積流量 (今日)", className: "group-acc",
             items: [
-                // 4. ACC 小項：標題改中文，右上角代碼改資料庫欄位
-                { col: "FI000A_Q_VAL0_DAILY", tag: "FI000A_Q_VAL0", name: "API出口日流量", unit: "M3", cat: "flow" },
-                { col: "FI000B_Q_VAL0_DAILY", tag: "FI000B_Q_VAL0", name: "API進口日流量", unit: "M3", cat: "flow" },
-                { col: "FI003_Q_VAL0_DAILY",  tag: "FI003_Q_VAL0",  name: "DAF進口日流量", unit: "M3", cat: "flow" },
-                { col: "FI012_Q_VAL0_DAILY",  tag: "FI012_Q_VAL0",  name: "調勻槽出日流量",unit: "M3", cat: "flow" },
-                { col: "FI018_Q_VAL0_DAILY",  tag: "FI018_Q_VAL0",  name: "D01放流日流量", unit: "M3", cat: "flow" },
-                { col: "FI018B_Q_VAL0_DAILY", tag: "FI018B_Q_VAL0", name: "回收水日流量",  unit: "M3", cat: "flow" },
-                { col: "FI021W_Q_VAL0_DAILY", tag: "FI021W_Q_VAL0", name: "生活污水日流量",unit: "M3", cat: "flow" },
-                { col: "FI031_Q_VAL0_DAILY",  tag: "FI031_Q_VAL0",  name: "污泥槽出日流量",unit: "M3", cat: "flow" }
+                { col: "FI000A_Q_VAL0_DAILY", tag: "FI000A_Q", name: "API出口日流量", unit: "M3", cat: "flow" },
+                { col: "FI000B_Q_VAL0_DAILY", tag: "FI000B_Q", name: "API進口日流量", unit: "M3", cat: "flow" },
+                { col: "FI003_Q_VAL0_DAILY",  tag: "FI003_Q",  name: "DAF進口日流量", unit: "M3", cat: "flow" },
+                { col: "FI012_Q_VAL0_DAILY",  tag: "FI012_Q",  name: "調勻槽出日流量",unit: "M3", cat: "flow" },
+                { col: "FI018_Q_VAL0_DAILY",  tag: "FI018_Q",  name: "D01放流日流量", unit: "M3", cat: "flow" },
+                { col: "FI018B_Q_VAL0_DAILY", tag: "FI018B_Q", name: "回收水日流量",  unit: "M3", cat: "flow" },
+                { col: "FI021W_Q_VAL0_DAILY", tag: "FI021W_Q", name: "生活污水日流量",unit: "M3", cat: "flow" },
+                { col: "FI031_Q_VAL0_DAILY",  tag: "FI031_Q",  name: "污泥槽出日流量",unit: "M3", cat: "flow" }
             ]
         }
     ];
@@ -289,7 +296,70 @@
     setInterval(fetchData, 5000); fetchData();
     function toggleTheme() { const body = document.body; const newTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark"; body.setAttribute("data-theme", newTheme); localStorage.setItem("theme", newTheme); document.getElementById("themeBtn").innerHTML = newTheme === "dark" ? "☀️" : "🌓"; if(myChart) updateChart(); }
     const savedTheme = localStorage.getItem("theme"); if (savedTheme) { document.body.setAttribute("data-theme", savedTheme); document.getElementById("themeBtn").innerHTML = savedTheme === "dark" ? "☀️" : "🌓"; }
-    let historyData = null; let myChart = null; function openChartModal() { document.getElementById('chartModal').style.display = 'block'; renderCheckboxes(); if (!historyData) fetchHistory(); } function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; } function fetchHistory() { fetch(API_URL + "?mode=history").then(res => res.json()).then(json => { historyData = json; updateChart(); }); } function renderCheckboxes() { const cat = document.getElementById('categorySelect').value; const container = document.getElementById('tagCheckboxes'); container.innerHTML = ''; let items = []; DASHBOARD_CONFIG.forEach(group => { group.items.forEach(item => { if (item.cat === cat) items.push(item); }); }); items.forEach((item, index) => { container.innerHTML += `<label style="display:inline-block; margin-right:10px; color:var(--text-main);"><input type="checkbox" value="${item.col}" id="chk_${item.col}" ${index===0?'checked':''} onchange="updateChart()"> ${item.name}</label>`; }); updateChart(); } function updateChart() { if (!historyData) return; const timeRangeHours = parseInt(document.getElementById('timeRange').value); const headers = historyData.headers; const rawRows = historyData.data; const checkboxes = document.querySelectorAll('#tagCheckboxes input:checked'); const selectedCols = []; checkboxes.forEach(chk => { const idx = headers.indexOf(chk.value); if (idx !== -1) selectedCols.push({ idx: idx, label: chk.parentNode.textContent.trim(), data: [] }); }); const now = new Date(); const labels = []; rawRows.forEach(row => { let timeStr = row[0]; let rowDate = new Date(timeStr); let diffHours = (now - rowDate) / 1000 / 60 / 60; if (diffHours <= timeRangeHours) { let label = rowDate.getMonth()+1 + "/" + rowDate.getDate() + " " + rowDate.getHours() + ":" + (rowDate.getMinutes()<10?'0':'') + rowDate.getMinutes(); labels.push(label); selectedCols.forEach(col => { col.data.push(row[col.idx]); }); } }); const ctx = document.getElementById('myChart').getContext('2d'); if (myChart) myChart.destroy(); const isDark = document.body.getAttribute("data-theme") === "dark"; const gridColor = isDark ? '#444' : '#ddd'; const textColor = isDark ? '#eee' : '#666'; const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c', '#343a40']; Chart.defaults.color = textColor; Chart.defaults.borderColor = gridColor; myChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: selectedCols.map((col, i) => ({ label: col.label, data: col.data, borderColor: colors[i % colors.length], borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 })) }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 10 } } } } }); }
+    let historyData = null; let myChart = null; function openChartModal() { document.getElementById('chartModal').style.display = 'block'; renderCheckboxes(); if (!historyData) fetchHistory(); } function closeChartModal() { document.getElementById('chartModal').style.display = 'none'; } function fetchHistory() { fetch(API_URL + "?mode=history").then(res => res.json()).then(json => { historyData = json; updateChart(); }); } function renderCheckboxes() { const cat = document.getElementById('categorySelect').value; const container = document.getElementById('tagCheckboxes'); container.innerHTML = ''; let items = []; DASHBOARD_CONFIG.forEach(group => { group.items.forEach(item => { if (item.cat === cat) items.push(item); }); }); items.forEach((item, index) => { container.innerHTML += `<label style="display:inline-block; margin-right:10px; color:var(--text-main);"><input type="checkbox" value="${item.col}" id="chk_${item.col}" ${index===0?'checked':''} onchange="updateChart()"> ${item.name}</label>`; }); updateChart(); } 
+    
+    // --- 更新：加入警報線 (Warning/Critical) ---
+    function updateChart() {
+        if (!historyData) return;
+        const timeRangeHours = parseInt(document.getElementById('timeRange').value);
+        const headers = historyData.headers;
+        const rawRows = historyData.data;
+        const checkboxes = document.querySelectorAll('#tagCheckboxes input:checked');
+        const selectedCols = [];
+        checkboxes.forEach(chk => { const idx = headers.indexOf(chk.value); if (idx !== -1) selectedCols.push({ idx: idx, label: chk.parentNode.textContent.trim(), key: chk.value, data: [] }); });
+        
+        const now = new Date(); const labels = [];
+        rawRows.forEach(row => {
+            let timeStr = row[0]; let rowDate = new Date(timeStr); let diffHours = (now - rowDate) / 1000 / 60 / 60;
+            if (diffHours <= timeRangeHours) {
+                let label = rowDate.getMonth()+1 + "/" + rowDate.getDate() + " " + rowDate.getHours() + ":" + (rowDate.getMinutes()<10?'0':'') + rowDate.getMinutes();
+                labels.push(label); selectedCols.forEach(col => { col.data.push(row[col.idx]); });
+            }
+        });
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        
+        const isDark = document.body.getAttribute("data-theme") === "dark";
+        const gridColor = isDark ? '#444' : '#ddd'; const textColor = isDark ? '#eee' : '#666';
+        const colors = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c', '#343a40'];
+        
+        let datasets = selectedCols.map((col, i) => ({ label: col.label, data: col.data, borderColor: colors[i % colors.length], borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 }));
+
+        // **新增：如果只選一個點位，且有設定警報，則畫出警報線**
+        if (selectedCols.length === 1) {
+            const rule = ALARMS[selectedCols[0].key];
+            if (rule) {
+                // 黃色警告線
+                if (rule.warn) {
+                    datasets.push({
+                        label: '警告 (' + rule.warn + ')',
+                        data: new Array(labels.length).fill(rule.warn),
+                        borderColor: '#ffc107', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
+                    });
+                }
+                // 紅色超限線
+                if (rule.crit) {
+                    datasets.push({
+                        label: '超限 (' + rule.crit + ')',
+                        data: new Array(labels.length).fill(rule.crit),
+                        borderColor: '#dc3545', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false
+                    });
+                }
+            }
+        }
+
+        Chart.defaults.color = textColor; Chart.defaults.borderColor = gridColor;
+        myChart = new Chart(ctx, { 
+            type: 'line', 
+            data: { labels: labels, datasets: datasets }, 
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                scales: { x: { ticks: { maxTicksLimit: 10 } } },
+                plugins: { legend: { labels: { color: textColor } } }
+            } 
+        });
+    }
 </script>
 
 </body>
