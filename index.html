@@ -251,7 +251,7 @@
             id: "wm02", title: "WM02 生活污水", className: "group-wm02",
             items: [
                 { col: "LI021_VAL0",   tag: "LI02-01",   name: "生活污水儲槽",   unit: "cm",   cat: "level" },
-                { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "出口流量",       unit: "M3/Hr",cat: "flow" },
+                { col: "FI021W_VAL0",  tag: "FIT02-01",  name: "生活污水出口流量",       unit: "M3/Hr",cat: "flow" },
                 { col: "LI022_VAL0",   tag: "LI02-02",   name: "SBR液位",        unit: "cm",   cat: "level" },
                 { col: "FI018B_VAL0",  tag: "FIT01-08",  name: "回收水流量",     unit: "M3/Hr",cat: "flow" },
                 { col: "LI011_VAL0",   tag: "T02-04",    name: "回收水槽液位",   unit: "cm",   cat: "level" }
@@ -280,8 +280,8 @@
         {
             id: "acc", title: "ACC 每日累積流量 (今日)", className: "group-acc",
             items: [
-                { col: "FI000A_Q_VAL0_DAILY", tag: "FI000A_Q", name: "API出口日流量", unit: "M3", cat: "flow" },
                 { col: "FI000B_Q_VAL0_DAILY", tag: "FI000B_Q", name: "API進口日流量", unit: "M3", cat: "flow" },
+                { col: "FI000A_Q_VAL0_DAILY", tag: "FI000A_Q", name: "API出口日流量", unit: "M3", cat: "flow" },
                 { col: "FI003_Q_VAL0_DAILY",  tag: "FI003_Q",  name: "DAF進口日流量", unit: "M3", cat: "flow" },
                 { col: "FI012_Q_VAL0_DAILY",  tag: "FI012_Q",  name: "調勻槽出日流量",unit: "M3", cat: "flow" },
                 { col: "FI018_Q_VAL0_DAILY",  tag: "FI018_Q",  name: "D01放流日流量", unit: "M3", cat: "flow" },
